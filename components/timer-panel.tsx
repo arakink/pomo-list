@@ -21,6 +21,10 @@ function getDurationByMode(mode: TimerMode) {
   return mode === "work" ? WORK_DURATION_SECONDS : BREAK_DURATION_SECONDS;
 }
 
+function getNextMode(mode: TimerMode): TimerMode {
+  return mode === "work" ? "break" : "work";
+}
+
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60)
     .toString()
@@ -35,6 +39,7 @@ export function TimerPanel() {
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
+  const nextMode = getNextMode(mode);
 
   useEffect(() => {
     if (!isRunning) {
@@ -128,6 +133,13 @@ export function TimerPanel() {
               className="min-w-36 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
             >
               Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeChange(nextMode)}
+              className="min-w-36 rounded-full border border-slate-900 bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              {mode === "work" ? "Breakに移行" : "Workに移行"}
             </button>
           </div>
         </div>
