@@ -40,6 +40,7 @@ export function TimerPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const nextMode = getNextMode(mode);
+  const canStart = secondsLeft > 0;
 
   useEffect(() => {
     if (!isRunning) {
@@ -48,7 +49,7 @@ export function TimerPanel() {
 
     const intervalId = window.setInterval(() => {
       setSecondsLeft((currentSeconds) => {
-        if (currentSeconds <= 1) {
+        if (currentSeconds === 1) {
           window.clearInterval(intervalId);
           setIsRunning(false);
 
@@ -75,6 +76,19 @@ export function TimerPanel() {
   const handleReset = () => {
     setSecondsLeft(getDurationByMode(mode));
     setIsRunning(false);
+  };
+
+  const handleStartPause = () => {
+    if (isRunning) {
+      setIsRunning(false);
+      return;
+    }
+
+    if (!canStart) {
+      return;
+    }
+
+    setIsRunning(true);
   };
 
   return (
@@ -122,8 +136,9 @@ export function TimerPanel() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => setIsRunning((current) => !current)}
-              className="min-w-36 rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
+              onClick={handleStartPause}
+              disabled={!isRunning && !canStart}
+              className="min-w-36 rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-orange-300"
             >
               {isRunning ? "Pause" : "Start"}
             </button>
