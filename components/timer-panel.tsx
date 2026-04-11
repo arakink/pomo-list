@@ -40,6 +40,7 @@ export function TimerPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const intervalRef = useRef<number | null>(null);
+  const defaultTitleRef = useRef<string>("");
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
 
@@ -49,6 +50,23 @@ export function TimerPanel() {
       intervalRef.current = null;
     }
   };
+
+  useEffect(() => {
+    defaultTitleRef.current = document.title;
+  }, []);
+
+  useEffect(() => {
+    if (!isRunning) {
+      document.title = defaultTitleRef.current;
+      return;
+    }
+
+    document.title = `${formatTime(secondsLeft)} | ${modeLabels[mode]} | ${defaultTitleRef.current}`;
+
+    return () => {
+      document.title = defaultTitleRef.current;
+    };
+  }, [isRunning, mode, secondsLeft]);
 
   useEffect(() => {
     if (!isRunning) {
