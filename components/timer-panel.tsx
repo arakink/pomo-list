@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;
@@ -39,18 +39,29 @@ export function TimerPanel() {
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
+  const intervalRef = useRef<number | null>(null);
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
 
+  const clearRunningTimer = () => {
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
   useEffect(() => {
     if (!isRunning) {
+      clearRunningTimer();
       return;
     }
 
-    const intervalId = window.setInterval(() => {
+    clearRunningTimer();
+
+    intervalRef.current = window.setInterval(() => {
       setSecondsLeft((currentSeconds) => {
         if (currentSeconds === 1) {
-          window.clearInterval(intervalId);
+          clearRunningTimer();
           setIsRunning(false);
 
           if (mode === "work") {
@@ -64,22 +75,25 @@ export function TimerPanel() {
       });
     }, 1000);
 
-    return () => window.clearInterval(intervalId);
+    return clearRunningTimer;
   }, [isRunning, mode]);
 
   const handleModeChange = (nextMode: TimerMode) => {
+    clearRunningTimer();
     setMode(nextMode);
     setSecondsLeft(getDurationByMode(nextMode));
     setIsRunning(false);
   };
 
   const handleReset = () => {
+    clearRunningTimer();
     setSecondsLeft(getDurationByMode(mode));
     setIsRunning(false);
   };
 
   const handleStartPause = () => {
     if (isRunning) {
+      clearRunningTimer();
       setIsRunning(false);
       return;
     }
