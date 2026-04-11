@@ -122,6 +122,7 @@ export function TimerPanel() {
                     key={item}
                     type="button"
                     onClick={() => handleModeChange(item)}
+                    aria-pressed={isActive}
                     className={`rounded-full border px-5 py-2 text-sm font-semibold transition ${
                       isActive
                         ? "border-slate-900 bg-slate-900 text-white"
