@@ -41,6 +41,8 @@ export function TimerPanel() {
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const intervalRef = useRef<number | null>(null);
   const defaultTitleRef = useRef<string>("");
+  const secondsLeftRef = useRef(WORK_DURATION_SECONDS);
+  const modeRef = useRef<TimerMode>("work");
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
 
@@ -54,6 +56,14 @@ export function TimerPanel() {
   useEffect(() => {
     defaultTitleRef.current = document.title;
   }, []);
+
+  useEffect(() => {
+    secondsLeftRef.current = secondsLeft;
+  }, [secondsLeft]);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   useEffect(() => {
     if (!isRunning) {
@@ -77,20 +87,18 @@ export function TimerPanel() {
     clearRunningTimer();
 
     intervalRef.current = window.setInterval(() => {
-      setSecondsLeft((currentSeconds) => {
-        if (currentSeconds === 1) {
-          clearRunningTimer();
-          setIsRunning(false);
+      const nextSeconds = Math.max(secondsLeftRef.current - 1, 0);
+      secondsLeftRef.current = nextSeconds;
+      setSecondsLeft(nextSeconds);
 
-          if (mode === "work") {
-            setCompletedPomodoros((count) => count + 1);
-          }
+      if (nextSeconds === 0) {
+        clearRunningTimer();
+        setIsRunning(false);
 
-          return 0;
+        if (modeRef.current === "work") {
+          setCompletedPomodoros((count) => count + 1);
         }
-
-        return currentSeconds - 1;
-      });
+      }
     }, 1000);
 
     return clearRunningTimer;
