@@ -39,6 +39,7 @@ export function TimerPanel() {
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
+  const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
   const intervalRef = useRef<number | null>(null);
   const defaultTitleRef = useRef<string>("");
   const secondsLeftRef = useRef(WORK_DURATION_SECONDS);
@@ -51,6 +52,22 @@ export function TimerPanel() {
       window.clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
+  };
+
+  const switchMode = (nextMode: TimerMode) => {
+    clearRunningTimer();
+    setMode(nextMode);
+    setSecondsLeft(getDurationByMode(nextMode));
+    setIsRunning(false);
+  };
+
+  const moveWorkToBreak = (shouldCountAsCompleted: boolean) => {
+    if (shouldCountAsCompleted) {
+      setCompletedPomodoros((count) => count + 1);
+    }
+
+    setIsConfirmingBreakMove(false);
+    switchMode("break");
   };
 
   useEffect(() => {
@@ -105,10 +122,19 @@ export function TimerPanel() {
   }, [isRunning, mode]);
 
   const handleModeChange = (nextMode: TimerMode) => {
-    clearRunningTimer();
-    setMode(nextMode);
-    setSecondsLeft(getDurationByMode(nextMode));
-    setIsRunning(false);
+    const hasStartedWorkSession =
+      mode === "work" &&
+      nextMode === "break" &&
+      secondsLeft > 0 &&
+      secondsLeft < WORK_DURATION_SECONDS;
+
+    if (hasStartedWorkSession) {
+      setIsConfirmingBreakMove(true);
+      return;
+    }
+
+    setIsConfirmingBreakMove(false);
+    switchMode(nextMode);
   };
 
   const handleReset = () => {
@@ -220,6 +246,45 @@ export function TimerPanel() {
           </div>
         </aside>
       </div>
+
+      {isConfirmingBreakMove ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-5">
+          <div className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
+            <p className="text-sm font-medium uppercase tracking-[0.28em] text-orange-700">
+              Work Session
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+              この Work をどう記録しますか？
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Break に移行する前に、このセッションを完了として記録するか選択してください。
+            </p>
+            <div className="mt-6 grid gap-3">
+              <button
+                type="button"
+                onClick={() => moveWorkToBreak(true)}
+                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                完了として記録して Break へ
+              </button>
+              <button
+                type="button"
+                onClick={() => moveWorkToBreak(false)}
+                className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+              >
+                未完了のまま Break へ
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsConfirmingBreakMove(false)}
+                className="rounded-full px-5 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
