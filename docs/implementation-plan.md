@@ -10,8 +10,8 @@ PomoList is a web app built around the concept:
 ## Branch Strategy
 
 1. `feature/01-timer-core`
-2. `feature/02-current-task-and-stats`
-3. `feature/03-todo-management`
+2. `feature/02-todo-management`
+3. `feature/03-current-task-and-stats`
 4. `feature/04-timer-todo-integration`
 5. `feature/05-polish-persistence`
 
@@ -21,13 +21,13 @@ PomoList is a web app built around the concept:
 
 タイマー単体を完成させる。25/5 の切替、開始・停止・リセット、完了カウンターまで。ここでは ToDo 連携は入れない。
 
-### `feature/02-current-task-and-stats`
-
-タイマー下に「現在のタスク名・タグ表示」と「タグ別完了回数の統計表示」を追加する。まだ ToDo からのセットはせず、仮データまたは空状態を扱えるようにする。
-
-### `feature/03-todo-management`
+### `feature/02-todo-management`
 
 ToDo の追加、完了/未完了の移動、タグ入力、一覧表示を作る。ここではタイマーとは独立させる。
+
+### `feature/03-current-task-and-stats`
+
+タイマー下に「現在のタスク名・タグ表示」と「タグ別完了回数の統計表示」を追加する。まだ ToDo からのセットはせず、仮データまたは空状態を扱えるようにする。
 
 ### `feature/04-timer-todo-integration`
 
