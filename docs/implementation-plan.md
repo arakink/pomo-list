@@ -23,7 +23,9 @@ PomoList is a web app built around the concept:
 
 ### `feature/02-todo-management`
 
-ToDo の追加、完了/未完了の移動、タグ入力、一覧表示を作る。ここではタイマーとは独立させる。
+ToDo 管理の土台を作る。追加、完了切替、タグ管理、一覧表示までを実装し、タイマー連携はまだ入れない。
+
+詳細: [feature-02-todo-management.md](./branches/feature-02-todo-management.md)
 
 ### `feature/03-current-task-and-stats`
 
