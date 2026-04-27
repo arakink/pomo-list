@@ -9,7 +9,7 @@ type Todo = {
   completed: boolean;
 };
 
-type SelectionMode = "complete" | "restore" | "delete" | null;
+type SelectionMode = "primary" | "delete" | null;
 
 const initialTodos: Todo[] = [
   {
@@ -215,7 +215,7 @@ export function TodoPanel() {
             columnType="incomplete"
             selectionMode={selectionMode}
             selectionColumn={selectionColumn}
-            onStartPrimarySelection={() => startSelection("complete", "incomplete")}
+            onStartPrimarySelection={() => startSelection("primary", "incomplete")}
             onStartDeleteSelection={() => startSelection("delete", "incomplete")}
             onConfirmSelection={() => {
               if (selectionMode === "delete") {
@@ -246,7 +246,7 @@ export function TodoPanel() {
             columnType="completed"
             selectionMode={selectionMode}
             selectionColumn={selectionColumn}
-            onStartPrimarySelection={() => startSelection("restore", "completed")}
+            onStartPrimarySelection={() => startSelection("primary", "completed")}
             onStartDeleteSelection={() => startSelection("delete", "completed")}
             onConfirmSelection={() => {
               if (selectionMode === "delete") {
