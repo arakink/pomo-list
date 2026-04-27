@@ -461,20 +461,32 @@ function TodoColumn({
 
                 {editingTodoId === todo.id ? (
                   <div className="space-y-3">
-                    <input
-                      type="text"
-                      value={editingTitle}
-                      onChange={(event) => onEditingTitleChange(event.target.value)}
-                      placeholder="タスク名"
-                      className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
-                    />
-                    <input
-                      type="text"
-                      value={editingTag}
-                      onChange={(event) => onEditingTagChange(event.target.value)}
-                      placeholder="タグ"
-                      className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
-                    />
+                    <div className="space-y-2">
+                      <label htmlFor={`edit-title-${todo.id}`} className="sr-only">
+                        タスク名
+                      </label>
+                      <input
+                        id={`edit-title-${todo.id}`}
+                        type="text"
+                        value={editingTitle}
+                        onChange={(event) => onEditingTitleChange(event.target.value)}
+                        placeholder="タスク名"
+                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor={`edit-tag-${todo.id}`} className="sr-only">
+                        タグ
+                      </label>
+                      <input
+                        id={`edit-tag-${todo.id}`}
+                        type="text"
+                        value={editingTag}
+                        onChange={(event) => onEditingTagChange(event.target.value)}
+                        placeholder="タグ"
+                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
