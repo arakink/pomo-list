@@ -57,7 +57,7 @@ export function TodoPanel() {
   const [tag, setTag] = useState("");
   const [selectedTodoIds, setSelectedTodoIds] = useState<string[]>([]);
   const [selectionMode, setSelectionMode] = useState<SelectionMode>(null);
-  const [selectionColumn, setSelectionColumn] = useState<"incomplete" | "completed" | null>(null);
+  const [selectionColumn, setSelectionColumn] = useState<ColumnType | null>(null);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingTag, setEditingTag] = useState("");
