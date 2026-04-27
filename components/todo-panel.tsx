@@ -10,12 +10,12 @@ type Todo = {
 };
 
 type ColumnType = "incomplete" | "completed";
-type SelectionMode = "primary" | "delete" | null;
+type SelectionMode = "toggleStatus" | "delete" | null;
 type TodoColumnSelection = {
   mode: SelectionMode;
   column: ColumnType | null;
   selectedTodoIds: string[];
-  onStartPrimary: () => void;
+  onStartToggleStatus: () => void;
   onStartDelete: () => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -166,7 +166,7 @@ export function TodoPanel() {
     mode: selectionMode,
     column: selectionColumn,
     selectedTodoIds,
-    onStartPrimary: () => startSelection("primary", column),
+    onStartToggleStatus: () => startSelection("toggleStatus", column),
     onStartDelete: () => startSelection("delete", column),
     onConfirm: () => {
       if (selectionMode === "delete") {
@@ -403,7 +403,7 @@ function TodoColumn({
           <>
             <button
               type="button"
-              onClick={selection.onStartPrimary}
+              onClick={selection.onStartToggleStatus}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${buttonClassName}`}
             >
               {primaryActionLabel}
