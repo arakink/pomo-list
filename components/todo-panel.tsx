@@ -9,7 +9,28 @@ type Todo = {
   completed: boolean;
 };
 
+type ColumnType = "incomplete" | "completed";
 type SelectionMode = "primary" | "delete" | null;
+type TodoColumnSelection = {
+  mode: SelectionMode;
+  column: ColumnType | null;
+  selectedTodoIds: string[];
+  onStartPrimary: () => void;
+  onStartDelete: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  onSelect: (id: string) => void;
+};
+type TodoColumnEditing = {
+  todoId: string | null;
+  title: string;
+  tag: string;
+  onStart: (todo: Todo) => void;
+  onSave: (id: string) => void;
+  onCancel: () => void;
+  onTitleChange: (value: string) => void;
+  onTagChange: (value: string) => void;
+};
 
 const initialTodos: Todo[] = [
   {
@@ -77,7 +98,7 @@ export function TodoPanel() {
 
   const startSelection = (
     mode: Exclude<SelectionMode, null>,
-    column: "incomplete" | "completed",
+    column: ColumnType,
   ) => {
     setSelectionMode(mode);
     setSelectionColumn(column);
@@ -139,6 +160,35 @@ export function TodoPanel() {
     }
 
     cancelSelection();
+  };
+
+  const createSelection = (column: ColumnType): TodoColumnSelection => ({
+    mode: selectionMode,
+    column: selectionColumn,
+    selectedTodoIds,
+    onStartPrimary: () => startSelection("primary", column),
+    onStartDelete: () => startSelection("delete", column),
+    onConfirm: () => {
+      if (selectionMode === "delete") {
+        deleteSelectedTodos();
+        return;
+      }
+
+      moveSelectedTodos(column === "incomplete");
+    },
+    onCancel: cancelSelection,
+    onSelect: toggleTodoSelected,
+  });
+
+  const editing: TodoColumnEditing = {
+    todoId: editingTodoId,
+    title: editingTitle,
+    tag: editingTag,
+    onStart: startEditingTodo,
+    onSave: saveTodo,
+    onCancel: cancelEditingTodo,
+    onTitleChange: setEditingTitle,
+    onTagChange: setEditingTag,
   };
 
   return (
@@ -213,33 +263,8 @@ export function TodoPanel() {
             emptyMessage="まだタスクはありません。追加するとここに表示されます。"
             todos={incompleteTodos}
             columnType="incomplete"
-            selection={{
-              mode: selectionMode,
-              column: selectionColumn,
-              selectedTodoIds,
-              onStartPrimary: () => startSelection("primary", "incomplete"),
-              onStartDelete: () => startSelection("delete", "incomplete"),
-              onConfirm: () => {
-                if (selectionMode === "delete") {
-                  deleteSelectedTodos();
-                  return;
-                }
-
-                moveSelectedTodos(true);
-              },
-              onCancel: cancelSelection,
-              onSelect: toggleTodoSelected,
-            }}
-            editing={{
-              todoId: editingTodoId,
-              title: editingTitle,
-              tag: editingTag,
-              onStart: startEditingTodo,
-              onSave: saveTodo,
-              onCancel: cancelEditingTodo,
-              onTitleChange: setEditingTitle,
-              onTagChange: setEditingTag,
-            }}
+            selection={createSelection("incomplete")}
+            editing={editing}
             tone="slate"
           />
           <TodoColumn
@@ -248,33 +273,8 @@ export function TodoPanel() {
             emptyMessage="完了したタスクはまだありません。"
             todos={completedTodos}
             columnType="completed"
-            selection={{
-              mode: selectionMode,
-              column: selectionColumn,
-              selectedTodoIds,
-              onStartPrimary: () => startSelection("primary", "completed"),
-              onStartDelete: () => startSelection("delete", "completed"),
-              onConfirm: () => {
-                if (selectionMode === "delete") {
-                  deleteSelectedTodos();
-                  return;
-                }
-
-                moveSelectedTodos(false);
-              },
-              onCancel: cancelSelection,
-              onSelect: toggleTodoSelected,
-            }}
-            editing={{
-              todoId: editingTodoId,
-              title: editingTitle,
-              tag: editingTag,
-              onStart: startEditingTodo,
-              onSave: saveTodo,
-              onCancel: cancelEditingTodo,
-              onTitleChange: setEditingTitle,
-              onTagChange: setEditingTag,
-            }}
+            selection={createSelection("completed")}
+            editing={editing}
             tone="emerald"
           />
         </div>
@@ -288,27 +288,9 @@ type TodoColumnProps = {
   count: number;
   emptyMessage: string;
   todos: Todo[];
-  columnType: "incomplete" | "completed";
-  selection: {
-    mode: SelectionMode;
-    column: "incomplete" | "completed" | null;
-    selectedTodoIds: string[];
-    onStartPrimary: () => void;
-    onStartDelete: () => void;
-    onConfirm: () => void;
-    onCancel: () => void;
-    onSelect: (id: string) => void;
-  };
-  editing: {
-    todoId: string | null;
-    title: string;
-    tag: string;
-    onStart: (todo: Todo) => void;
-    onSave: (id: string) => void;
-    onCancel: () => void;
-    onTitleChange: (value: string) => void;
-    onTagChange: (value: string) => void;
-  };
+  columnType: ColumnType;
+  selection: TodoColumnSelection;
+  editing: TodoColumnEditing;
   tone: "slate" | "emerald";
 };
 
