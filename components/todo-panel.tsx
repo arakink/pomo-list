@@ -343,10 +343,9 @@ function TodoColumn({
     tone === "emerald"
       ? "border-white/20 bg-white/8 text-emerald-200 accent-emerald-300"
       : "border-slate-300 bg-white text-emerald-700 accent-emerald-600";
-  const selectedIdsInColumn = todos
-    .filter((todo) => selection.selectedTodoIds.includes(todo.id))
-    .map((todo) => todo.id);
-  const hasSelection = selectedIdsInColumn.length > 0;
+  const hasSelection = todos.some((todo) =>
+    selection.selectedTodoIds.includes(todo.id),
+  );
   const isSelectingInThisColumn = selection.column === columnType;
   const primaryActionLabel =
     columnType === "incomplete" ? "完了にする" : "未完了へ戻す";
