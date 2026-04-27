@@ -32,6 +32,34 @@ type TodoColumnEditing = {
   onTagChange: (value: string) => void;
 };
 
+function getPrimaryActionLabel(columnType: ColumnType) {
+  return columnType === "incomplete" ? "完了にする" : "未完了へ戻す";
+}
+
+function getConfirmActionLabel(
+  mode: SelectionMode,
+  columnType: ColumnType,
+) {
+  if (mode === "delete") {
+    return "削除を実行";
+  }
+
+  return getPrimaryActionLabel(columnType);
+}
+
+function getSelectionDescription(
+  mode: SelectionMode,
+  columnType: ColumnType,
+) {
+  if (mode === "delete") {
+    return "対象のタスクを選んで削除します。";
+  }
+
+  return columnType === "incomplete"
+    ? "完了にしたいタスクを選んでください。"
+    : "未完了へ戻したいタスクを選んでください。";
+}
+
 const initialTodos: Todo[] = [
   {
     id: "todo-1",
@@ -347,20 +375,12 @@ function TodoColumn({
     selection.selectedTodoIds.includes(todo.id),
   );
   const isSelectingInThisColumn = selection.column === columnType;
-  const primaryActionLabel =
-    columnType === "incomplete" ? "完了にする" : "未完了へ戻す";
-  const confirmActionLabel =
-    selection.mode === "delete"
-      ? "削除を実行"
-      : columnType === "incomplete"
-        ? "完了にする"
-        : "未完了へ戻す";
-  const selectionDescription =
-    selection.mode === "delete"
-      ? "対象のタスクを選んで削除します。"
-      : columnType === "incomplete"
-        ? "完了にしたいタスクを選んでください。"
-        : "未完了へ戻したいタスクを選んでください。";
+  const primaryActionLabel = getPrimaryActionLabel(columnType);
+  const confirmActionLabel = getConfirmActionLabel(selection.mode, columnType);
+  const selectionDescription = getSelectionDescription(
+    selection.mode,
+    columnType,
+  );
 
   return (
     <section className={`rounded-[1.75rem] p-5 ${panelClassName}`}>
