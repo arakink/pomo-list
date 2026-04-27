@@ -449,6 +449,7 @@ function TodoColumn({
                       type="checkbox"
                       checked={selection.selectedTodoIds.includes(todo.id)}
                       onChange={() => selection.onSelect(todo.id)}
+                      aria-label={`「${todo.title}」を選択`}
                       className={`h-4 w-4 rounded border ${checkboxClassName}`}
                     />
                     <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${eyebrowClassName}`}>
