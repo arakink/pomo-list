@@ -9,6 +9,57 @@ type Todo = {
   completed: boolean;
 };
 
+type ColumnType = "incomplete" | "completed";
+type SelectionMode = "toggleStatus" | "delete" | null;
+type TodoColumnSelection = {
+  mode: SelectionMode;
+  column: ColumnType | null;
+  selectedTodoIds: string[];
+  onStartToggleStatus: () => void;
+  onStartDelete: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  onSelect: (id: string) => void;
+};
+type TodoColumnEditing = {
+  todoId: string | null;
+  title: string;
+  tag: string;
+  onStart: (todo: Todo) => void;
+  onSave: (id: string) => void;
+  onCancel: () => void;
+  onTitleChange: (value: string) => void;
+  onTagChange: (value: string) => void;
+};
+
+function getPrimaryActionLabel(columnType: ColumnType) {
+  return columnType === "incomplete" ? "完了にする" : "未完了へ戻す";
+}
+
+function getConfirmActionLabel(
+  mode: SelectionMode,
+  columnType: ColumnType,
+) {
+  if (mode === "delete") {
+    return "削除を実行";
+  }
+
+  return getPrimaryActionLabel(columnType);
+}
+
+function getSelectionDescription(
+  mode: SelectionMode,
+  columnType: ColumnType,
+) {
+  if (mode === "delete") {
+    return "対象のタスクを選んで削除します。";
+  }
+
+  return columnType === "incomplete"
+    ? "完了にしたいタスクを選んでください。"
+    : "未完了へ戻したいタスクを選んでください。";
+}
+
 const initialTodos: Todo[] = [
   {
     id: "todo-1",
@@ -32,6 +83,12 @@ export function TodoPanel() {
   const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("");
+  const [selectedTodoIds, setSelectedTodoIds] = useState<string[]>([]);
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>(null);
+  const [selectionColumn, setSelectionColumn] = useState<ColumnType | null>(null);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingTag, setEditingTag] = useState("");
 
   const incompleteTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
@@ -59,12 +116,107 @@ export function TodoPanel() {
     setTag("");
   };
 
-  const toggleTodoCompleted = (id: string) => {
+  const toggleTodoSelected = (id: string) => {
+    setSelectedTodoIds((currentIds) =>
+      currentIds.includes(id)
+        ? currentIds.filter((currentId) => currentId !== id)
+        : [...currentIds, id],
+    );
+  };
+
+  const startSelection = (
+    mode: Exclude<SelectionMode, null>,
+    column: ColumnType,
+  ) => {
+    setSelectionMode(mode);
+    setSelectionColumn(column);
+    setSelectedTodoIds([]);
+  };
+
+  const cancelSelection = () => {
+    setSelectionMode(null);
+    setSelectionColumn(null);
+    setSelectedTodoIds([]);
+  };
+
+  const moveSelectedTodos = (completed: boolean) => {
     setTodos((currentTodos) =>
       currentTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+        selectedTodoIds.includes(todo.id) ? { ...todo, completed } : todo,
       ),
     );
+    cancelSelection();
+  };
+
+  const startEditingTodo = (todo: Todo) => {
+    setEditingTodoId(todo.id);
+    setEditingTitle(todo.title);
+    setEditingTag(todo.tag);
+  };
+
+  const cancelEditingTodo = () => {
+    setEditingTodoId(null);
+    setEditingTitle("");
+    setEditingTag("");
+  };
+
+  const saveTodo = (id: string) => {
+    const trimmedTitle = editingTitle.trim();
+    const trimmedTag = editingTag.trim();
+
+    if (!trimmedTitle) {
+      return;
+    }
+
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        todo.id === id
+          ? { ...todo, title: trimmedTitle, tag: trimmedTag }
+          : todo,
+      ),
+    );
+    cancelEditingTodo();
+  };
+
+  const deleteSelectedTodos = () => {
+    setTodos((currentTodos) =>
+      currentTodos.filter((todo) => !selectedTodoIds.includes(todo.id)),
+    );
+
+    if (editingTodoId !== null && selectedTodoIds.includes(editingTodoId)) {
+      cancelEditingTodo();
+    }
+
+    cancelSelection();
+  };
+
+  const createSelection = (column: ColumnType): TodoColumnSelection => ({
+    mode: selectionMode,
+    column: selectionColumn,
+    selectedTodoIds,
+    onStartToggleStatus: () => startSelection("toggleStatus", column),
+    onStartDelete: () => startSelection("delete", column),
+    onConfirm: () => {
+      if (selectionMode === "delete") {
+        deleteSelectedTodos();
+        return;
+      }
+
+      moveSelectedTodos(column === "incomplete");
+    },
+    onCancel: cancelSelection,
+    onSelect: toggleTodoSelected,
+  });
+
+  const editing: TodoColumnEditing = {
+    todoId: editingTodoId,
+    title: editingTitle,
+    tag: editingTag,
+    onStart: startEditingTodo,
+    onSave: saveTodo,
+    onCancel: cancelEditingTodo,
+    onTitleChange: setEditingTitle,
+    onTagChange: setEditingTag,
   };
 
   return (
@@ -138,8 +290,9 @@ export function TodoPanel() {
             count={incompleteTodos.length}
             emptyMessage="まだタスクはありません。追加するとここに表示されます。"
             todos={incompleteTodos}
-            actionLabel="完了にする"
-            onToggle={toggleTodoCompleted}
+            columnType="incomplete"
+            selection={createSelection("incomplete")}
+            editing={editing}
             tone="slate"
           />
           <TodoColumn
@@ -147,8 +300,9 @@ export function TodoPanel() {
             count={completedTodos.length}
             emptyMessage="完了したタスクはまだありません。"
             todos={completedTodos}
-            actionLabel="未完了へ戻す"
-            onToggle={toggleTodoCompleted}
+            columnType="completed"
+            selection={createSelection("completed")}
+            editing={editing}
             tone="emerald"
           />
         </div>
@@ -162,8 +316,9 @@ type TodoColumnProps = {
   count: number;
   emptyMessage: string;
   todos: Todo[];
-  actionLabel: string;
-  onToggle: (id: string) => void;
+  columnType: ColumnType;
+  selection: TodoColumnSelection;
+  editing: TodoColumnEditing;
   tone: "slate" | "emerald";
 };
 
@@ -172,8 +327,9 @@ function TodoColumn({
   count,
   emptyMessage,
   todos,
-  actionLabel,
-  onToggle,
+  columnType,
+  selection,
+  editing,
   tone,
 }: TodoColumnProps) {
   const panelClassName =
@@ -199,6 +355,32 @@ function TodoColumn({
     tone === "emerald"
       ? "border-white/20 bg-white/8 text-white hover:bg-white/14"
       : "border-slate-300 bg-white text-slate-700 hover:border-slate-500";
+  const secondaryButtonClassName =
+    tone === "emerald"
+      ? "border-white/15 bg-transparent text-slate-200 hover:bg-white/10"
+      : "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200";
+  const dangerButtonClassName =
+    tone === "emerald"
+      ? "border-rose-300/30 bg-rose-400/10 text-rose-100 hover:bg-rose-400/20"
+      : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100";
+  const inputClassName =
+    tone === "emerald"
+      ? "border-white/15 bg-white/8 text-white placeholder:text-slate-300 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-200/10"
+      : "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10";
+  const checkboxClassName =
+    tone === "emerald"
+      ? "border-white/20 bg-white/8 text-emerald-200 accent-emerald-300"
+      : "border-slate-300 bg-white text-emerald-700 accent-emerald-600";
+  const hasSelection = todos.some((todo) =>
+    selection.selectedTodoIds.includes(todo.id),
+  );
+  const isSelectingInThisColumn = selection.column === columnType;
+  const primaryActionLabel = getPrimaryActionLabel(columnType);
+  const confirmActionLabel = getConfirmActionLabel(selection.mode, columnType);
+  const selectionDescription = getSelectionDescription(
+    selection.mode,
+    columnType,
+  );
 
   return (
     <section className={`rounded-[1.75rem] p-5 ${panelClassName}`}>
@@ -213,33 +395,145 @@ function TodoColumn({
         </div>
       </div>
 
+      <div className="mt-5 grid gap-2">
+        {isSelectingInThisColumn ? (
+          <>
+            <p className={`text-sm leading-6 ${eyebrowClassName}`}>
+              {selectionDescription}
+            </p>
+            <button
+              type="button"
+              onClick={selection.onConfirm}
+              disabled={!hasSelection}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                selection.mode === "delete" ? dangerButtonClassName : buttonClassName
+              }`}
+            >
+              {confirmActionLabel}
+            </button>
+            <button
+              type="button"
+              onClick={selection.onCancel}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
+            >
+              キャンセル
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={selection.onStartToggleStatus}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${buttonClassName}`}
+            >
+              {primaryActionLabel}
+            </button>
+            <button
+              type="button"
+              onClick={selection.onStartDelete}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${dangerButtonClassName}`}
+            >
+              削除
+            </button>
+          </>
+        )}
+      </div>
+
       {todos.length > 0 ? (
         <ul className="mt-5 space-y-3">
           {todos.map((todo) => (
             <li key={todo.id} className={`rounded-[1.4rem] p-4 ${cardClassName}`}>
               <div className="flex flex-col gap-4">
-                <div className="space-y-3">
-                  <p className={`text-base font-semibold leading-6 ${titleClassName}`}>
-                    {todo.title}
-                  </p>
-                  {todo.tag ? (
-                    <span
-                      className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${tagClassName}`}
-                    >
-                      {todo.tag}
+                {isSelectingInThisColumn ? (
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selection.selectedTodoIds.includes(todo.id)}
+                      onChange={() => selection.onSelect(todo.id)}
+                      aria-label={`「${todo.title}」を選択`}
+                      className={`h-4 w-4 rounded border ${checkboxClassName}`}
+                    />
+                    <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${eyebrowClassName}`}>
+                      選択
                     </span>
-                  ) : (
-                    <span className={`text-xs ${emptyClassName}`}>タグなし</span>
-                  )}
-                </div>
+                  </label>
+                ) : null}
 
-                <button
-                  type="button"
-                  onClick={() => onToggle(todo.id)}
-                  className={`w-full rounded-full border px-4 py-2 text-sm font-semibold transition ${buttonClassName}`}
-                >
-                  {actionLabel}
-                </button>
+                {editing.todoId === todo.id ? (
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <label htmlFor={`edit-title-${todo.id}`} className="sr-only">
+                        タスク名
+                      </label>
+                      <input
+                        id={`edit-title-${todo.id}`}
+                        type="text"
+                        value={editing.title}
+                        onChange={(event) => editing.onTitleChange(event.target.value)}
+                        placeholder="タスク名"
+                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor={`edit-tag-${todo.id}`} className="sr-only">
+                        タグ
+                      </label>
+                      <input
+                        id={`edit-tag-${todo.id}`}
+                        type="text"
+                        value={editing.tag}
+                        onChange={(event) => editing.onTagChange(event.target.value)}
+                        placeholder="タグ"
+                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className={`text-base font-semibold leading-6 ${titleClassName}`}>
+                      {todo.title}
+                    </p>
+                    {todo.tag ? (
+                      <span
+                        className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${tagClassName}`}
+                      >
+                        {todo.tag}
+                      </span>
+                    ) : (
+                      <span className={`text-xs ${emptyClassName}`}>タグなし</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {editing.todoId === todo.id ? (
+                    <button
+                      type="button"
+                      onClick={() => editing.onSave(todo.id)}
+                      disabled={!editing.title.trim()}
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${buttonClassName}`}
+                    >
+                      保存
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => editing.onStart(todo)}
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
+                    >
+                      編集
+                    </button>
+                  )}
+                  {editing.todoId === todo.id ? (
+                    <button
+                      type="button"
+                      onClick={editing.onCancel}
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
+                    >
+                      キャンセル
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </li>
           ))}
