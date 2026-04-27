@@ -213,29 +213,33 @@ export function TodoPanel() {
             emptyMessage="まだタスクはありません。追加するとここに表示されます。"
             todos={incompleteTodos}
             columnType="incomplete"
-            selectionMode={selectionMode}
-            selectionColumn={selectionColumn}
-            onStartPrimarySelection={() => startSelection("primary", "incomplete")}
-            onStartDeleteSelection={() => startSelection("delete", "incomplete")}
-            onConfirmSelection={() => {
-              if (selectionMode === "delete") {
-                deleteSelectedTodos();
-                return;
-              }
+            selection={{
+              mode: selectionMode,
+              column: selectionColumn,
+              selectedTodoIds,
+              onStartPrimary: () => startSelection("primary", "incomplete"),
+              onStartDelete: () => startSelection("delete", "incomplete"),
+              onConfirm: () => {
+                if (selectionMode === "delete") {
+                  deleteSelectedTodos();
+                  return;
+                }
 
-              moveSelectedTodos(true);
+                moveSelectedTodos(true);
+              },
+              onCancel: cancelSelection,
+              onSelect: toggleTodoSelected,
             }}
-            onCancelSelection={cancelSelection}
-            onEdit={startEditingTodo}
-            onSave={saveTodo}
-            onCancelEdit={cancelEditingTodo}
-            selectedTodoIds={selectedTodoIds}
-            onSelect={toggleTodoSelected}
-            editingTodoId={editingTodoId}
-            editingTitle={editingTitle}
-            editingTag={editingTag}
-            onEditingTitleChange={setEditingTitle}
-            onEditingTagChange={setEditingTag}
+            editing={{
+              todoId: editingTodoId,
+              title: editingTitle,
+              tag: editingTag,
+              onStart: startEditingTodo,
+              onSave: saveTodo,
+              onCancel: cancelEditingTodo,
+              onTitleChange: setEditingTitle,
+              onTagChange: setEditingTag,
+            }}
             tone="slate"
           />
           <TodoColumn
@@ -244,29 +248,33 @@ export function TodoPanel() {
             emptyMessage="完了したタスクはまだありません。"
             todos={completedTodos}
             columnType="completed"
-            selectionMode={selectionMode}
-            selectionColumn={selectionColumn}
-            onStartPrimarySelection={() => startSelection("primary", "completed")}
-            onStartDeleteSelection={() => startSelection("delete", "completed")}
-            onConfirmSelection={() => {
-              if (selectionMode === "delete") {
-                deleteSelectedTodos();
-                return;
-              }
+            selection={{
+              mode: selectionMode,
+              column: selectionColumn,
+              selectedTodoIds,
+              onStartPrimary: () => startSelection("primary", "completed"),
+              onStartDelete: () => startSelection("delete", "completed"),
+              onConfirm: () => {
+                if (selectionMode === "delete") {
+                  deleteSelectedTodos();
+                  return;
+                }
 
-              moveSelectedTodos(false);
+                moveSelectedTodos(false);
+              },
+              onCancel: cancelSelection,
+              onSelect: toggleTodoSelected,
             }}
-            onCancelSelection={cancelSelection}
-            onEdit={startEditingTodo}
-            onSave={saveTodo}
-            onCancelEdit={cancelEditingTodo}
-            selectedTodoIds={selectedTodoIds}
-            onSelect={toggleTodoSelected}
-            editingTodoId={editingTodoId}
-            editingTitle={editingTitle}
-            editingTag={editingTag}
-            onEditingTitleChange={setEditingTitle}
-            onEditingTagChange={setEditingTag}
+            editing={{
+              todoId: editingTodoId,
+              title: editingTitle,
+              tag: editingTag,
+              onStart: startEditingTodo,
+              onSave: saveTodo,
+              onCancel: cancelEditingTodo,
+              onTitleChange: setEditingTitle,
+              onTagChange: setEditingTag,
+            }}
             tone="emerald"
           />
         </div>
@@ -281,22 +289,26 @@ type TodoColumnProps = {
   emptyMessage: string;
   todos: Todo[];
   columnType: "incomplete" | "completed";
-  selectionMode: SelectionMode;
-  selectionColumn: "incomplete" | "completed" | null;
-  onStartPrimarySelection: () => void;
-  onStartDeleteSelection: () => void;
-  onConfirmSelection: () => void;
-  onCancelSelection: () => void;
-  onEdit: (todo: Todo) => void;
-  onSave: (id: string) => void;
-  onCancelEdit: () => void;
-  selectedTodoIds: string[];
-  onSelect: (id: string) => void;
-  editingTodoId: string | null;
-  editingTitle: string;
-  editingTag: string;
-  onEditingTitleChange: (value: string) => void;
-  onEditingTagChange: (value: string) => void;
+  selection: {
+    mode: SelectionMode;
+    column: "incomplete" | "completed" | null;
+    selectedTodoIds: string[];
+    onStartPrimary: () => void;
+    onStartDelete: () => void;
+    onConfirm: () => void;
+    onCancel: () => void;
+    onSelect: (id: string) => void;
+  };
+  editing: {
+    todoId: string | null;
+    title: string;
+    tag: string;
+    onStart: (todo: Todo) => void;
+    onSave: (id: string) => void;
+    onCancel: () => void;
+    onTitleChange: (value: string) => void;
+    onTagChange: (value: string) => void;
+  };
   tone: "slate" | "emerald";
 };
 
@@ -306,22 +318,8 @@ function TodoColumn({
   emptyMessage,
   todos,
   columnType,
-  selectionMode,
-  selectionColumn,
-  onStartPrimarySelection,
-  onStartDeleteSelection,
-  onConfirmSelection,
-  onCancelSelection,
-  onEdit,
-  onSave,
-  onCancelEdit,
-  selectedTodoIds,
-  onSelect,
-  editingTodoId,
-  editingTitle,
-  editingTag,
-  onEditingTitleChange,
-  onEditingTagChange,
+  selection,
+  editing,
   tone,
 }: TodoColumnProps) {
   const panelClassName =
@@ -364,20 +362,20 @@ function TodoColumn({
       ? "border-white/20 bg-white/8 text-emerald-200 accent-emerald-300"
       : "border-slate-300 bg-white text-emerald-700 accent-emerald-600";
   const selectedIdsInColumn = todos
-    .filter((todo) => selectedTodoIds.includes(todo.id))
+    .filter((todo) => selection.selectedTodoIds.includes(todo.id))
     .map((todo) => todo.id);
   const hasSelection = selectedIdsInColumn.length > 0;
-  const isSelectingInThisColumn = selectionColumn === columnType;
+  const isSelectingInThisColumn = selection.column === columnType;
   const primaryActionLabel =
     columnType === "incomplete" ? "完了にする" : "未完了へ戻す";
   const confirmActionLabel =
-    selectionMode === "delete"
+    selection.mode === "delete"
       ? "削除を実行"
       : columnType === "incomplete"
         ? "完了にする"
         : "未完了へ戻す";
   const selectionDescription =
-    selectionMode === "delete"
+    selection.mode === "delete"
       ? "対象のタスクを選んで削除します。"
       : columnType === "incomplete"
         ? "完了にしたいタスクを選んでください。"
@@ -404,17 +402,17 @@ function TodoColumn({
             </p>
             <button
               type="button"
-              onClick={onConfirmSelection}
+              onClick={selection.onConfirm}
               disabled={!hasSelection}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                selectionMode === "delete" ? dangerButtonClassName : buttonClassName
+                selection.mode === "delete" ? dangerButtonClassName : buttonClassName
               }`}
             >
               {confirmActionLabel}
             </button>
             <button
               type="button"
-              onClick={onCancelSelection}
+              onClick={selection.onCancel}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
             >
               キャンセル
@@ -424,14 +422,14 @@ function TodoColumn({
           <>
             <button
               type="button"
-              onClick={onStartPrimarySelection}
+              onClick={selection.onStartPrimary}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${buttonClassName}`}
             >
               {primaryActionLabel}
             </button>
             <button
               type="button"
-              onClick={onStartDeleteSelection}
+              onClick={selection.onStartDelete}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${dangerButtonClassName}`}
             >
               削除
@@ -449,8 +447,8 @@ function TodoColumn({
                   <label className="flex items-center gap-3">
                     <input
                       type="checkbox"
-                      checked={selectedTodoIds.includes(todo.id)}
-                      onChange={() => onSelect(todo.id)}
+                      checked={selection.selectedTodoIds.includes(todo.id)}
+                      onChange={() => selection.onSelect(todo.id)}
                       className={`h-4 w-4 rounded border ${checkboxClassName}`}
                     />
                     <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${eyebrowClassName}`}>
@@ -459,7 +457,7 @@ function TodoColumn({
                   </label>
                 ) : null}
 
-                {editingTodoId === todo.id ? (
+                {editing.todoId === todo.id ? (
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <label htmlFor={`edit-title-${todo.id}`} className="sr-only">
@@ -468,8 +466,8 @@ function TodoColumn({
                       <input
                         id={`edit-title-${todo.id}`}
                         type="text"
-                        value={editingTitle}
-                        onChange={(event) => onEditingTitleChange(event.target.value)}
+                        value={editing.title}
+                        onChange={(event) => editing.onTitleChange(event.target.value)}
                         placeholder="タスク名"
                         className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
                       />
@@ -481,8 +479,8 @@ function TodoColumn({
                       <input
                         id={`edit-tag-${todo.id}`}
                         type="text"
-                        value={editingTag}
-                        onChange={(event) => onEditingTagChange(event.target.value)}
+                        value={editing.tag}
+                        onChange={(event) => editing.onTagChange(event.target.value)}
                         placeholder="タグ"
                         className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
                       />
@@ -506,11 +504,11 @@ function TodoColumn({
                 )}
 
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {editingTodoId === todo.id ? (
+                  {editing.todoId === todo.id ? (
                     <button
                       type="button"
-                      onClick={() => onSave(todo.id)}
-                      disabled={!editingTitle.trim()}
+                      onClick={() => editing.onSave(todo.id)}
+                      disabled={!editing.title.trim()}
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${buttonClassName}`}
                     >
                       保存
@@ -518,16 +516,16 @@ function TodoColumn({
                   ) : (
                     <button
                       type="button"
-                      onClick={() => onEdit(todo)}
+                      onClick={() => editing.onStart(todo)}
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
                     >
                       編集
                     </button>
                   )}
-                  {editingTodoId === todo.id ? (
+                  {editing.todoId === todo.id ? (
                     <button
                       type="button"
-                      onClick={onCancelEdit}
+                      onClick={editing.onCancel}
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
                     >
                       キャンセル
