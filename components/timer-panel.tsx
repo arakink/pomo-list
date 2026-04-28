@@ -6,6 +6,14 @@ const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;
 
 type TimerMode = "work" | "break";
+type CurrentTask = {
+  title: string;
+  tag: string;
+};
+type TagStat = {
+  tag: string;
+  completedCount: number;
+};
 
 const modeLabels: Record<TimerMode, string> = {
   work: "Work",
@@ -40,6 +48,15 @@ export function TimerPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
+  const [currentTask] = useState<CurrentTask | null>({
+    title: "企画書の構成をまとめる",
+    tag: "仕事",
+  });
+  const [tagStats] = useState<TagStat[]>([
+    { tag: "仕事", completedCount: 4 },
+    { tag: "学習", completedCount: 2 },
+    { tag: "生活", completedCount: 1 },
+  ]);
   const intervalRef = useRef<number | null>(null);
   const defaultTitleRef = useRef<string>("");
   const secondsLeftRef = useRef(WORK_DURATION_SECONDS);
@@ -245,6 +262,74 @@ export function TimerPanel() {
             </p>
           </div>
         </aside>
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+            Current Task
+          </p>
+          {currentTask ? (
+            <div className="mt-3 space-y-3">
+              <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+                {currentTask.title}
+              </p>
+              <span className="inline-flex w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                {currentTask.tag}
+              </span>
+              <p className="text-sm leading-6 text-slate-600">
+                今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。
+              </p>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              まだ現在のタスクは設定されていません。次のブランチで ToDo からセットできるようにします。
+            </p>
+          )}
+        </section>
+
+        <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+                Tag Stats
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+                タグ別の完了回数
+              </p>
+            </div>
+            <p className="text-sm text-slate-500">Mock Data</p>
+          </div>
+
+          {tagStats.length > 0 ? (
+            <ul className="mt-5 space-y-3">
+              {tagStats.map((stat) => (
+                <li
+                  key={stat.tag}
+                  className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
+                      {stat.tag}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-semibold tracking-[-0.05em] text-slate-950">
+                      {stat.completedCount}
+                    </p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                      completed
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-5 text-sm leading-6 text-slate-500">
+              まだ集計はありません。作業の記録連携は次のブランチで追加します。
+            </p>
+          )}
+        </section>
       </div>
 
       {isConfirmingBreakMove ? (
