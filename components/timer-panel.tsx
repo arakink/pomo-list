@@ -15,6 +15,17 @@ type TagStat = {
   completedCount: number;
 };
 
+const mockCurrentTask: CurrentTask = {
+  title: "企画書の構成をまとめる",
+  tag: "仕事",
+};
+
+const mockTagStats: TagStat[] = [
+  { tag: "仕事", completedCount: 4 },
+  { tag: "学習", completedCount: 2 },
+  { tag: "生活", completedCount: 1 },
+];
+
 const modeLabels: Record<TimerMode, string> = {
   work: "Work",
   break: "Break",
@@ -48,15 +59,6 @@ export function TimerPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
-  const [currentTask] = useState<CurrentTask | null>({
-    title: "企画書の構成をまとめる",
-    tag: "仕事",
-  });
-  const [tagStats] = useState<TagStat[]>([
-    { tag: "仕事", completedCount: 4 },
-    { tag: "学習", completedCount: 2 },
-    { tag: "生活", completedCount: 1 },
-  ]);
   const intervalRef = useRef<number | null>(null);
   const defaultTitleRef = useRef<string>("");
   const secondsLeftRef = useRef(WORK_DURATION_SECONDS);
@@ -269,13 +271,13 @@ export function TimerPanel() {
           <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             Current Task
           </p>
-          {currentTask ? (
+          {mockCurrentTask ? (
             <div className="mt-3 space-y-3">
               <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-                {currentTask.title}
+                {mockCurrentTask.title}
               </p>
               <span className="inline-flex w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                {currentTask.tag}
+                {mockCurrentTask.tag}
               </span>
               <p className="text-sm leading-6 text-slate-600">
                 今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。
@@ -301,9 +303,9 @@ export function TimerPanel() {
             <p className="text-sm text-slate-500">Mock Data</p>
           </div>
 
-          {tagStats.length > 0 ? (
+          {mockTagStats.length > 0 ? (
             <ul className="mt-5 space-y-3">
-              {tagStats.map((stat) => (
+              {mockTagStats.map((stat) => (
                 <li
                   key={stat.tag}
                   className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
