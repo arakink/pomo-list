@@ -67,6 +67,10 @@ function getTagStatLabel(tag: string) {
   return normalizedTag || "未設定";
 }
 
+function getTagStatKey(tag: string) {
+  return getTagStatLabel(tag);
+}
+
 function getTagStatsDescription(tagStats: TagStat[]) {
   if (tagStats.length === 0) {
     return "まだ集計はありません。作業記録が追加されるとここに表示されます。";
@@ -346,13 +350,12 @@ export function TimerPanel() {
 
           {tagStats.length > 0 ? (
             <ul className="mt-5 space-y-3">
-              {tagStats.map((stat) => (
-                (() => {
-                  const normalizedTagLabel = getTagStatLabel(stat.tag);
+              {tagStats.map((stat) => {
+                const normalizedTagLabel = getTagStatLabel(stat.tag);
 
-                  return (
+                return (
                 <li
-                  key={`${normalizedTagLabel}-${stat.completedCount}`}
+                  key={getTagStatKey(stat.tag)}
                   className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
@@ -369,9 +372,8 @@ export function TimerPanel() {
                     </p>
                   </div>
                 </li>
-                  );
-                })()
-              ))}
+                );
+              })}
             </ul>
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
