@@ -62,7 +62,9 @@ function getCurrentTaskDescription(currentTask: CurrentTask | null) {
 }
 
 function getTagStatLabel(tag: string) {
-  return tag.trim() ? tag : "未設定";
+  const normalizedTag = tag.trim();
+
+  return normalizedTag || "未設定";
 }
 
 function getTagStatsDescription(tagStats: TagStat[]) {
@@ -345,13 +347,17 @@ export function TimerPanel() {
           {tagStats.length > 0 ? (
             <ul className="mt-5 space-y-3">
               {tagStats.map((stat) => (
+                (() => {
+                  const normalizedTagLabel = getTagStatLabel(stat.tag);
+
+                  return (
                 <li
-                  key={`${stat.tag || "untagged"}-${stat.completedCount}`}
+                  key={`${normalizedTagLabel}-${stat.completedCount}`}
                   className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
                     <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
-                      {getTagStatLabel(stat.tag)}
+                      {normalizedTagLabel}
                     </span>
                   </div>
                   <div className="text-right">
@@ -363,6 +369,8 @@ export function TimerPanel() {
                     </p>
                   </div>
                 </li>
+                  );
+                })()
               ))}
             </ul>
           ) : (
