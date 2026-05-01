@@ -15,7 +15,7 @@ type TagStat = {
   completedCount: number;
 };
 
-const mockCurrentTask: CurrentTask = {
+const mockCurrentTask: CurrentTask | null = {
   title: "企画書の構成をまとめる",
   tag: "仕事",
 };
