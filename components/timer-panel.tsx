@@ -53,6 +53,18 @@ function formatTime(totalSeconds: number) {
   return `${minutes}:${seconds}`;
 }
 
+function getCurrentTaskDescription(currentTask: CurrentTask | null) {
+  if (!currentTask) {
+    return "まだ現在のタスクはセットされていません。次のブランチで ToDo からセットできるようにします。";
+  }
+
+  if (!currentTask.tag.trim()) {
+    return "このタスクにはまだタグが設定されていません。タグの追加や編集は ToDo 管理側で行います。";
+  }
+
+  return "今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。";
+}
+
 export function TimerPanel() {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
@@ -65,6 +77,9 @@ export function TimerPanel() {
   const modeRef = useRef<TimerMode>("work");
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
+  const currentTask = mockCurrentTask;
+  const hasCurrentTask = currentTask !== null;
+  const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
 
   const clearRunningTimer = () => {
     if (intervalRef.current !== null) {
@@ -271,21 +286,27 @@ export function TimerPanel() {
           <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             Current Task
           </p>
-          {mockCurrentTask ? (
+          {hasCurrentTask ? (
             <div className="mt-3 space-y-3">
               <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-                {mockCurrentTask.title}
+                {currentTask.title}
               </p>
-              <span className="inline-flex w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                {mockCurrentTask.tag}
-              </span>
+              {hasCurrentTaskTag ? (
+                <span className="inline-flex w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                  {currentTask.tag}
+                </span>
+              ) : (
+                <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+                  未設定
+                </span>
+              )}
               <p className="text-sm leading-6 text-slate-600">
-                今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。
+                {getCurrentTaskDescription(currentTask)}
               </p>
             </div>
           ) : (
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              まだ現在のタスクは設定されていません。次のブランチで ToDo からセットできるようにします。
+              {getCurrentTaskDescription(currentTask)}
             </p>
           )}
         </section>
