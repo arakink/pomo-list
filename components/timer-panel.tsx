@@ -20,11 +20,7 @@ const mockCurrentTask: CurrentTask = {
   tag: "仕事",
 };
 
-const mockTagStats: TagStat[] = [
-  { tag: "仕事", completedCount: 4 },
-  { tag: "学習", completedCount: 2 },
-  { tag: "生活", completedCount: 1 },
-];
+const mockTagStats: TagStat[] = [];
 
 const modeLabels: Record<TimerMode, string> = {
   work: "Work",
@@ -65,6 +61,18 @@ function getCurrentTaskDescription(currentTask: CurrentTask | null) {
   return "今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。";
 }
 
+function getTagStatLabel(tag: string) {
+  return tag.trim() ? tag : "未設定";
+}
+
+function getTagStatsDescription(tagStats: TagStat[]) {
+  if (tagStats.length === 0) {
+    return "まだ集計はありません。作業記録が追加されるとここに表示されます。";
+  }
+
+  return "今は仮の統計表示です。タグ未設定のタスクは「未設定」として集計します。";
+}
+
 export function TimerPanel() {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
@@ -78,6 +86,7 @@ export function TimerPanel() {
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
   const currentTask = mockCurrentTask;
+  const tagStats = mockTagStats;
   const hasCurrentTask = currentTask !== null;
   const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
 
@@ -286,12 +295,16 @@ export function TimerPanel() {
           <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             Current Task
           </p>
-          {hasCurrentTask ? (
-            <div className="mt-3 space-y-3">
-              <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-                {currentTask.title}
-              </p>
-              {hasCurrentTaskTag ? (
+          <div className="mt-3 space-y-3">
+            <p
+              className={`text-2xl font-semibold tracking-[-0.04em] ${
+                hasCurrentTask ? "text-slate-950" : "text-slate-400"
+              }`}
+            >
+              {hasCurrentTask ? currentTask.title : "未設定"}
+            </p>
+            {hasCurrentTask ? (
+              hasCurrentTaskTag ? (
                 <span className="inline-flex w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
                   {currentTask.tag}
                 </span>
@@ -299,16 +312,16 @@ export function TimerPanel() {
                 <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
                   未設定
                 </span>
-              )}
-              <p className="text-sm leading-6 text-slate-600">
-                {getCurrentTaskDescription(currentTask)}
-              </p>
-            </div>
-          ) : (
-            <p className="mt-3 text-sm leading-6 text-slate-500">
+              )
+            ) : (
+              <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+                未セット
+              </span>
+            )}
+            <p className="text-sm leading-6 text-slate-600">
               {getCurrentTaskDescription(currentTask)}
             </p>
-          )}
+          </div>
         </section>
 
         <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8">
@@ -321,19 +334,24 @@ export function TimerPanel() {
                 タグ別の完了回数
               </p>
             </div>
-            <p className="text-sm text-slate-500">Mock Data</p>
+            <p className="text-sm text-slate-500">
+              {tagStats.length > 0 ? "Mock Data" : "Empty State"}
+            </p>
           </div>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            {getTagStatsDescription(tagStats)}
+          </p>
 
-          {mockTagStats.length > 0 ? (
+          {tagStats.length > 0 ? (
             <ul className="mt-5 space-y-3">
-              {mockTagStats.map((stat) => (
+              {tagStats.map((stat) => (
                 <li
-                  key={stat.tag}
+                  key={`${stat.tag || "untagged"}-${stat.completedCount}`}
                   className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
                     <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
-                      {stat.tag}
+                      {getTagStatLabel(stat.tag)}
                     </span>
                   </div>
                   <div className="text-right">
@@ -348,9 +366,12 @@ export function TimerPanel() {
               ))}
             </ul>
           ) : (
-            <p className="mt-5 text-sm leading-6 text-slate-500">
-              まだ集計はありません。作業の記録連携は次のブランチで追加します。
-            </p>
+            <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
+              <p className="text-sm font-semibold text-slate-700">まだ集計はありません</p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                作業記録が追加されると、タグごとの完了回数がここに表示されます。
+              </p>
+            </div>
           )}
         </section>
       </div>
