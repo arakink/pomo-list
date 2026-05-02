@@ -298,9 +298,9 @@ export function TimerPanel() {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
         <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+          <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             Current Task
-          </p>
+          </h2>
           <div className="mt-3 space-y-3">
             <p
               className={`text-2xl font-semibold tracking-[-0.04em] ${
@@ -333,9 +333,9 @@ export function TimerPanel() {
         <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+              <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
                 Tag Stats
-              </p>
+              </h2>
               <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
                 タグ別の完了回数
               </p>
