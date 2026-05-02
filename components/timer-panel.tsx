@@ -354,33 +354,30 @@ export function TimerPanel() {
                 const normalizedTagLabel = getTagStatLabel(stat.tag);
 
                 return (
-                <li
-                  key={getTagStatKey(stat.tag)}
-                  className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
-                      {normalizedTagLabel}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-semibold tracking-[-0.05em] text-slate-950">
-                      {stat.completedCount}
-                    </p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                      completed
-                    </p>
-                  </div>
-                </li>
+                  <li
+                    key={getTagStatKey(stat.tag)}
+                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
+                        {normalizedTagLabel}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-semibold tracking-[-0.05em] text-slate-950">
+                        {stat.completedCount}
+                      </p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                        completed
+                      </p>
+                    </div>
+                  </li>
                 );
               })}
             </ul>
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
               <p className="text-sm font-semibold text-slate-700">まだ集計はありません</p>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                作業記録が追加されると、タグごとの完了回数がここに表示されます。
-              </p>
             </div>
           )}
         </section>
