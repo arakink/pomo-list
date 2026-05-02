@@ -6,6 +6,21 @@ const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;
 
 type TimerMode = "work" | "break";
+type CurrentTask = {
+  title: string;
+  tag: string;
+};
+type TagStat = {
+  tag: string;
+  completedCount: number;
+};
+
+const mockCurrentTask: CurrentTask | null = {
+  title: "企画書の構成をまとめる",
+  tag: "仕事",
+};
+
+const mockTagStats: TagStat[] = [];
 
 const modeLabels: Record<TimerMode, string> = {
   work: "Work",
@@ -34,6 +49,36 @@ function formatTime(totalSeconds: number) {
   return `${minutes}:${seconds}`;
 }
 
+function getCurrentTaskDescription(currentTask: CurrentTask | null) {
+  if (!currentTask) {
+    return "まだ現在のタスクは未設定です。次のブランチで ToDo からセットできるようにします。";
+  }
+
+  if (!currentTask.tag.trim()) {
+    return "このタスクにはまだタグが設定されていません。タグの追加や編集は ToDo 管理側で行います。";
+  }
+
+  return "今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。";
+}
+
+function getTagStatLabel(tag: string) {
+  const normalizedTag = tag.trim();
+
+  return normalizedTag || "タグなし";
+}
+
+function getTagStatKey(tag: string) {
+  return getTagStatLabel(tag);
+}
+
+function getTagStatsDescription(tagStats: TagStat[]) {
+  if (tagStats.length === 0) {
+    return "完了した作業はタグごとに集計され、傾向をここで確認できます。";
+  }
+
+  return "今は仮の統計表示です。タグがないタスクは「タグなし」として集計します。";
+}
+
 export function TimerPanel() {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
@@ -46,6 +91,10 @@ export function TimerPanel() {
   const modeRef = useRef<TimerMode>("work");
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
+  const currentTask = mockCurrentTask;
+  const tagStats = mockTagStats;
+  const hasCurrentTask = currentTask !== null;
+  const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
 
   const clearRunningTimer = () => {
     if (intervalRef.current !== null) {
@@ -245,6 +294,93 @@ export function TimerPanel() {
             </p>
           </div>
         </aside>
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+            Current Task
+          </p>
+          <div className="mt-3 space-y-3">
+            <p
+              className={`text-2xl font-semibold tracking-[-0.04em] ${
+                hasCurrentTask ? "text-slate-950" : "text-slate-400"
+              }`}
+            >
+              {hasCurrentTask ? currentTask.title : "未設定"}
+            </p>
+            {hasCurrentTask ? (
+              hasCurrentTaskTag ? (
+                <span className="inline-flex w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                  {currentTask.tag}
+                </span>
+              ) : (
+                <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+                  タグなし
+                </span>
+              )
+            ) : (
+              <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+                未設定
+              </span>
+            )}
+            <p className="text-sm leading-6 text-slate-600">
+              {getCurrentTaskDescription(currentTask)}
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+                Tag Stats
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+                タグ別の完了回数
+              </p>
+            </div>
+            <p className="text-sm text-slate-500">
+              {tagStats.length > 0 ? "Mock Data" : "Empty State"}
+            </p>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            {getTagStatsDescription(tagStats)}
+          </p>
+
+          {tagStats.length > 0 ? (
+            <ul className="mt-5 space-y-3">
+              {tagStats.map((stat) => {
+                const normalizedTagLabel = getTagStatLabel(stat.tag);
+
+                return (
+                  <li
+                    key={getTagStatKey(stat.tag)}
+                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
+                        {normalizedTagLabel}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-semibold tracking-[-0.05em] text-slate-950">
+                        {stat.completedCount}
+                      </p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                        completed
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
+              <p className="text-sm font-semibold text-slate-700">まだ集計はありません</p>
+            </div>
+          )}
+        </section>
       </div>
 
       {isConfirmingBreakMove ? (
