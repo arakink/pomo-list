@@ -64,7 +64,7 @@ function getCurrentTaskDescription(currentTask: CurrentTask | null) {
 function getTagStatLabel(tag: string) {
   const normalizedTag = tag.trim();
 
-  return normalizedTag || "未設定";
+  return normalizedTag || "タグなし";
 }
 
 function getTagStatKey(tag: string) {
@@ -76,7 +76,7 @@ function getTagStatsDescription(tagStats: TagStat[]) {
     return "まだ集計はありません。作業記録が追加されるとここに表示されます。";
   }
 
-  return "今は仮の統計表示です。タグ未設定のタスクは「未設定」として集計します。";
+  return "今は仮の統計表示です。タグがないタスクは「タグなし」として集計します。";
 }
 
 export function TimerPanel() {
@@ -316,7 +316,7 @@ export function TimerPanel() {
                 </span>
               ) : (
                 <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-                  未設定
+                  タグなし
                 </span>
               )
             ) : (
