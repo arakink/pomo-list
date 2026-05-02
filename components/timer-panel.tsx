@@ -51,7 +51,7 @@ function formatTime(totalSeconds: number) {
 
 function getCurrentTaskDescription(currentTask: CurrentTask | null) {
   if (!currentTask) {
-    return "まだ現在のタスクはセットされていません。次のブランチで ToDo からセットできるようにします。";
+    return "まだ現在のタスクは未設定です。次のブランチで ToDo からセットできるようにします。";
   }
 
   if (!currentTask.tag.trim()) {
@@ -321,7 +321,7 @@ export function TimerPanel() {
               )
             ) : (
               <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-                未セット
+                未設定
               </span>
             )}
             <p className="text-sm leading-6 text-slate-600">
