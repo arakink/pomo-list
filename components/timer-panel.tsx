@@ -73,7 +73,7 @@ function getTagStatKey(tag: string) {
 
 function getTagStatsDescription(tagStats: TagStat[]) {
   if (tagStats.length === 0) {
-    return "まだ集計はありません。作業記録が追加されるとここに表示されます。";
+    return "完了した作業はタグごとに集計され、傾向をここで確認できます。";
   }
 
   return "今は仮の統計表示です。タグがないタスクは「タグなし」として集計します。";
