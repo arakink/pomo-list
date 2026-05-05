@@ -15,6 +15,12 @@ export type TagStat = {
   completedCount: number;
 };
 
+export function getTagStatLabel(tag: string) {
+  const normalizedTag = tag.trim();
+
+  return normalizedTag || "タグなし";
+}
+
 export const initialTodos: Todo[] = [
   {
     id: "todo-1",

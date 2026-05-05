@@ -61,18 +61,22 @@ function createTodoId() {
 
 type TodoPanelProps = {
   todos: Todo[];
+  activeTaskId: string | null;
   onAddTodo: (todo: Todo) => void;
   onUpdateTodo: (todo: Todo) => void;
   onUpdateTodoCompletion: (targetTodoIds: string[], completed: boolean) => void;
   onDeleteTodos: (targetTodoIds: string[]) => void;
+  onSetActiveTask: (todoId: string) => void;
 };
 
 export function TodoPanel({
   todos,
+  activeTaskId,
   onAddTodo,
   onUpdateTodo,
   onUpdateTodoCompletion,
   onDeleteTodos,
+  onSetActiveTask,
 }: TodoPanelProps) {
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("");
@@ -283,6 +287,8 @@ export function TodoPanel({
             selection={createSelection("incomplete")}
             editing={editing}
             tone="slate"
+            activeTaskId={activeTaskId}
+            onSetActiveTask={onSetActiveTask}
           />
           <TodoColumn
             title="完了済み"
@@ -293,6 +299,8 @@ export function TodoPanel({
             selection={createSelection("completed")}
             editing={editing}
             tone="emerald"
+            activeTaskId={activeTaskId}
+            onSetActiveTask={onSetActiveTask}
           />
         </div>
       </div>
@@ -309,6 +317,8 @@ type TodoColumnProps = {
   selection: TodoColumnSelection;
   editing: TodoColumnEditing;
   tone: "slate" | "emerald";
+  activeTaskId: string | null;
+  onSetActiveTask: (todoId: string) => void;
 };
 
 function TodoColumn({
@@ -320,6 +330,8 @@ function TodoColumn({
   selection,
   editing,
   tone,
+  activeTaskId,
+  onSetActiveTask,
 }: TodoColumnProps) {
   const panelClassName =
     tone === "emerald"
@@ -370,6 +382,7 @@ function TodoColumn({
     selection.mode,
     columnType,
   );
+  const canSetTask = columnType === "incomplete" && !isSelectingInThisColumn;
 
   return (
     <section className={`rounded-[1.75rem] p-5 ${panelClassName}`}>
@@ -479,9 +492,22 @@ function TodoColumn({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className={`text-base font-semibold leading-6 ${titleClassName}`}>
-                      {todo.title}
-                    </p>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <p className={`text-base font-semibold leading-6 ${titleClassName}`}>
+                        {todo.title}
+                      </p>
+                      {activeTaskId === todo.id ? (
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                            tone === "emerald"
+                              ? "bg-white/12 text-white"
+                              : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          Current
+                        </span>
+                      ) : null}
+                    </div>
                     {todo.tag ? (
                       <span
                         className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${tagClassName}`}
@@ -494,7 +520,24 @@ function TodoColumn({
                   </div>
                 )}
 
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div
+                  className={`grid gap-2 ${
+                    canSetTask ? "sm:grid-cols-3" : "sm:grid-cols-2"
+                  }`}
+                >
+                  {canSetTask ? (
+                    <button
+                      type="button"
+                      onClick={() => onSetActiveTask(todo.id)}
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                        activeTaskId === todo.id
+                          ? buttonClassName
+                          : secondaryButtonClassName
+                      }`}
+                    >
+                      {activeTaskId === todo.id ? "セット中" : "セット"}
+                    </button>
+                  ) : null}
                   {editing.todoId === todo.id ? (
                     <button
                       type="button"

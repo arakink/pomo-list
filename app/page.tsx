@@ -4,12 +4,18 @@ import { useState } from "react";
 
 import { TimerPanel } from "@/components/timer-panel";
 import { TodoPanel } from "@/components/todo-panel";
-import { CurrentTask, TagStat, Todo, initialTodos } from "@/lib/pomo-list";
+import {
+  CurrentTask,
+  TagStat,
+  Todo,
+  getTagStatLabel,
+  initialTodos,
+} from "@/lib/pomo-list";
 
 export default function Home() {
   const [todos, setTodos] = useState(initialTodos);
-  const [activeTaskId] = useState<string | null>(null);
-  const [tagStats] = useState<TagStat[]>([]);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const currentTask: CurrentTask | null =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
 
@@ -34,12 +40,52 @@ export default function Home() {
         targetTodoIds.includes(todo.id) ? { ...todo, completed } : todo,
       ),
     );
+
+    if (completed && activeTaskId !== null && targetTodoIds.includes(activeTaskId)) {
+      setActiveTaskId(null);
+    }
   };
 
   const handleDeleteTodos = (targetTodoIds: string[]) => {
     setTodos((currentTodos) =>
       currentTodos.filter((todo) => !targetTodoIds.includes(todo.id)),
     );
+
+    if (activeTaskId !== null && targetTodoIds.includes(activeTaskId)) {
+      setActiveTaskId(null);
+    }
+  };
+
+  const handleSetActiveTask = (todoId: string) => {
+    setActiveTaskId(todoId);
+  };
+
+  const handleWorkComplete = () => {
+    if (!currentTask) {
+      return;
+    }
+
+    const targetTag = getTagStatLabel(currentTask.tag);
+
+    setTagStats((currentStats) => {
+      const existingStat = currentStats.find((stat) => stat.tag === targetTag);
+
+      if (!existingStat) {
+        return [
+          ...currentStats,
+          {
+            tag: targetTag,
+            completedCount: 1,
+          },
+        ];
+      }
+
+      return currentStats.map((stat) =>
+        stat.tag === targetTag
+          ? { ...stat, completedCount: stat.completedCount + 1 }
+          : stat,
+      );
+    });
   };
 
   return (
@@ -58,13 +104,19 @@ export default function Home() {
           </p>
         </div>
 
-        <TimerPanel currentTask={currentTask} tagStats={tagStats} />
+        <TimerPanel
+          currentTask={currentTask}
+          tagStats={tagStats}
+          onWorkComplete={handleWorkComplete}
+        />
         <TodoPanel
           todos={todos}
+          activeTaskId={activeTaskId}
           onAddTodo={handleAddTodo}
           onUpdateTodo={handleUpdateTodo}
           onUpdateTodoCompletion={handleUpdateTodoCompletion}
           onDeleteTodos={handleDeleteTodos}
+          onSetActiveTask={handleSetActiveTask}
         />
       </section>
     </main>

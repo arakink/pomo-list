@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { CurrentTask, TagStat } from "@/lib/pomo-list";
+import { CurrentTask, TagStat, getTagStatLabel } from "@/lib/pomo-list";
 
 const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;
@@ -48,12 +48,6 @@ function getCurrentTaskDescription(currentTask: CurrentTask | null) {
   return "未完了タスクからセットした内容が表示されています。Work 完了時にこのタグへ回数が加算されます。";
 }
 
-function getTagStatLabel(tag: string) {
-  const normalizedTag = tag.trim();
-
-  return normalizedTag || "タグなし";
-}
-
 function getTagStatKey(tag: string) {
   return getTagStatLabel(tag);
 }
@@ -69,9 +63,14 @@ function getTagStatsDescription(tagStats: TagStat[]) {
 type TimerPanelProps = {
   currentTask: CurrentTask | null;
   tagStats: TagStat[];
+  onWorkComplete: () => void;
 };
 
-export function TimerPanel({ currentTask, tagStats }: TimerPanelProps) {
+export function TimerPanel({
+  currentTask,
+  tagStats,
+  onWorkComplete,
+}: TimerPanelProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
@@ -103,6 +102,7 @@ export function TimerPanel({ currentTask, tagStats }: TimerPanelProps) {
   const moveWorkToBreak = (shouldCountAsCompleted: boolean) => {
     if (shouldCountAsCompleted) {
       setCompletedPomodoros((count) => count + 1);
+      onWorkComplete();
     }
 
     setIsConfirmingBreakMove(false);
@@ -153,12 +153,13 @@ export function TimerPanel({ currentTask, tagStats }: TimerPanelProps) {
 
         if (modeRef.current === "work") {
           setCompletedPomodoros((count) => count + 1);
+          onWorkComplete();
         }
       }
     }, 1000);
 
     return clearRunningTimer;
-  }, [isRunning, mode]);
+  }, [isRunning, mode, onWorkComplete]);
 
   const handleModeChange = (nextMode: TimerMode) => {
     const hasStartedWorkSession =
