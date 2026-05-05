@@ -2,25 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { CurrentTask, TagStat } from "@/lib/pomo-list";
+
 const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;
 
 type TimerMode = "work" | "break";
-type CurrentTask = {
-  title: string;
-  tag: string;
-};
-type TagStat = {
-  tag: string;
-  completedCount: number;
-};
-
-const mockCurrentTask: CurrentTask | null = {
-  title: "企画書の構成をまとめる",
-  tag: "仕事",
-};
-
-const mockTagStats: TagStat[] = [];
 
 const modeLabels: Record<TimerMode, string> = {
   work: "Work",
@@ -79,7 +66,15 @@ function getTagStatsDescription(tagStats: TagStat[]) {
   return "今は仮の統計表示です。タグがないタスクは「タグなし」として集計します。";
 }
 
-export function TimerPanel() {
+type TimerPanelProps = {
+  currentTask?: CurrentTask | null;
+  tagStats?: TagStat[];
+};
+
+export function TimerPanel({
+  currentTask = null,
+  tagStats = [],
+}: TimerPanelProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
@@ -91,8 +86,6 @@ export function TimerPanel() {
   const modeRef = useRef<TimerMode>("work");
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
-  const currentTask = mockCurrentTask;
-  const tagStats = mockTagStats;
   const hasCurrentTask = currentTask !== null;
   const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
 

@@ -2,12 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
-type Todo = {
-  id: string;
-  title: string;
-  tag: string;
-  completed: boolean;
-};
+import { Todo, initialTodos as defaultInitialTodos } from "@/lib/pomo-list";
 
 type ColumnType = "incomplete" | "completed";
 type SelectionMode = "toggleStatus" | "delete" | null;
@@ -60,26 +55,17 @@ function getSelectionDescription(
     : "未完了へ戻したいタスクを選んでください。";
 }
 
-const initialTodos: Todo[] = [
-  {
-    id: "todo-1",
-    title: "朝会の前に進行メモを確認する",
-    tag: "仕事",
-    completed: false,
-  },
-  {
-    id: "todo-2",
-    title: "買い物リストを整理する",
-    tag: "生活",
-    completed: true,
-  },
-];
-
 function createTodoId() {
   return `todo-${crypto.randomUUID()}`;
 }
 
-export function TodoPanel() {
+type TodoPanelProps = {
+  initialTodos?: Todo[];
+};
+
+export function TodoPanel({
+  initialTodos = defaultInitialTodos,
+}: TodoPanelProps) {
   const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("");
