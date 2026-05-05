@@ -4,14 +4,43 @@ import { useState } from "react";
 
 import { TimerPanel } from "@/components/timer-panel";
 import { TodoPanel } from "@/components/todo-panel";
-import { CurrentTask, TagStat, initialTodos } from "@/lib/pomo-list";
+import { CurrentTask, TagStat, Todo, initialTodos } from "@/lib/pomo-list";
 
 export default function Home() {
-  const [todos] = useState(initialTodos);
+  const [todos, setTodos] = useState(initialTodos);
   const [activeTaskId] = useState<string | null>(null);
   const [tagStats] = useState<TagStat[]>([]);
   const currentTask: CurrentTask | null =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
+
+  const handleAddTodo = (todo: Todo) => {
+    setTodos((currentTodos) => [todo, ...currentTodos]);
+  };
+
+  const handleUpdateTodo = (updatedTodo: Todo) => {
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        todo.id === updatedTodo.id ? updatedTodo : todo,
+      ),
+    );
+  };
+
+  const handleUpdateTodoCompletion = (
+    targetTodoIds: string[],
+    completed: boolean,
+  ) => {
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        targetTodoIds.includes(todo.id) ? { ...todo, completed } : todo,
+      ),
+    );
+  };
+
+  const handleDeleteTodos = (targetTodoIds: string[]) => {
+    setTodos((currentTodos) =>
+      currentTodos.filter((todo) => !targetTodoIds.includes(todo.id)),
+    );
+  };
 
   return (
     <main className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#fff7ed_0%,#f8fafc_38%,#eef2ff_100%)] px-5 py-8 text-slate-950 sm:px-8 lg:px-12 lg:py-12">
@@ -30,7 +59,13 @@ export default function Home() {
         </div>
 
         <TimerPanel currentTask={currentTask} tagStats={tagStats} />
-        <TodoPanel initialTodos={todos} />
+        <TodoPanel
+          todos={todos}
+          onAddTodo={handleAddTodo}
+          onUpdateTodo={handleUpdateTodo}
+          onUpdateTodoCompletion={handleUpdateTodoCompletion}
+          onDeleteTodos={handleDeleteTodos}
+        />
       </section>
     </main>
   );

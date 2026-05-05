@@ -38,14 +38,14 @@ function formatTime(totalSeconds: number) {
 
 function getCurrentTaskDescription(currentTask: CurrentTask | null) {
   if (!currentTask) {
-    return "まだ現在のタスクは未設定です。次のブランチで ToDo からセットできるようにします。";
+    return "未完了タスクからセットすると、ここに現在取り組むタスクが表示されます。";
   }
 
   if (!currentTask.tag.trim()) {
-    return "このタスクにはまだタグが設定されていません。タグの追加や編集は ToDo 管理側で行います。";
+    return "このタスクにはタグがありません。完了回数は「タグなし」として集計されます。";
   }
 
-  return "今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。";
+  return "未完了タスクからセットした内容が表示されています。Work 完了時にこのタグへ回数が加算されます。";
 }
 
 function getTagStatLabel(tag: string) {
@@ -63,18 +63,15 @@ function getTagStatsDescription(tagStats: TagStat[]) {
     return "完了した作業はタグごとに集計され、傾向をここで確認できます。";
   }
 
-  return "今は仮の統計表示です。タグがないタスクは「タグなし」として集計します。";
+  return "Work を完了すると、現在のタスクのタグごとに回数が反映されます。";
 }
 
 type TimerPanelProps = {
-  currentTask?: CurrentTask | null;
-  tagStats?: TagStat[];
+  currentTask: CurrentTask | null;
+  tagStats: TagStat[];
 };
 
-export function TimerPanel({
-  currentTask = null,
-  tagStats = [],
-}: TimerPanelProps) {
+export function TimerPanel({ currentTask, tagStats }: TimerPanelProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
@@ -334,7 +331,7 @@ export function TimerPanel({
               </p>
             </div>
             <p className="text-sm text-slate-500">
-              {tagStats.length > 0 ? "Mock Data" : "Empty State"}
+              {tagStats.length > 0 ? "Live Data" : "Empty State"}
             </p>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">

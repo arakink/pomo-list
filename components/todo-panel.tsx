@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
-import { Todo, initialTodos as defaultInitialTodos } from "@/lib/pomo-list";
+import { Todo } from "@/lib/pomo-list";
 
 type ColumnType = "incomplete" | "completed";
 type SelectionMode = "toggleStatus" | "delete" | null;
@@ -60,13 +60,20 @@ function createTodoId() {
 }
 
 type TodoPanelProps = {
-  initialTodos?: Todo[];
+  todos: Todo[];
+  onAddTodo: (todo: Todo) => void;
+  onUpdateTodo: (todo: Todo) => void;
+  onUpdateTodoCompletion: (targetTodoIds: string[], completed: boolean) => void;
+  onDeleteTodos: (targetTodoIds: string[]) => void;
 };
 
 export function TodoPanel({
-  initialTodos = defaultInitialTodos,
+  todos,
+  onAddTodo,
+  onUpdateTodo,
+  onUpdateTodoCompletion,
+  onDeleteTodos,
 }: TodoPanelProps) {
-  const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("");
   const [selectedTodoIds, setSelectedTodoIds] = useState<string[]>([]);
@@ -89,15 +96,12 @@ export function TodoPanel({
       return;
     }
 
-    setTodos((currentTodos) => [
-      {
-        id: createTodoId(),
-        title: trimmedTitle,
-        tag: trimmedTag,
-        completed: false,
-      },
-      ...currentTodos,
-    ]);
+    onAddTodo({
+      id: createTodoId(),
+      title: trimmedTitle,
+      tag: trimmedTag,
+      completed: false,
+    });
     setTitle("");
     setTag("");
   };
@@ -126,11 +130,7 @@ export function TodoPanel({
   };
 
   const moveSelectedTodos = (completed: boolean) => {
-    setTodos((currentTodos) =>
-      currentTodos.map((todo) =>
-        selectedTodoIds.includes(todo.id) ? { ...todo, completed } : todo,
-      ),
-    );
+    onUpdateTodoCompletion(selectedTodoIds, completed);
     cancelSelection();
   };
 
@@ -154,20 +154,23 @@ export function TodoPanel({
       return;
     }
 
-    setTodos((currentTodos) =>
-      currentTodos.map((todo) =>
-        todo.id === id
-          ? { ...todo, title: trimmedTitle, tag: trimmedTag }
-          : todo,
-      ),
-    );
+    const todo = todos.find((currentTodo) => currentTodo.id === id);
+
+    if (!todo) {
+      cancelEditingTodo();
+      return;
+    }
+
+    onUpdateTodo({
+      ...todo,
+      title: trimmedTitle,
+      tag: trimmedTag,
+    });
     cancelEditingTodo();
   };
 
   const deleteSelectedTodos = () => {
-    setTodos((currentTodos) =>
-      currentTodos.filter((todo) => !selectedTodoIds.includes(todo.id)),
-    );
+    onDeleteTodos(selectedTodoIds);
 
     if (editingTodoId !== null && selectedTodoIds.includes(editingTodoId)) {
       cancelEditingTodo();
