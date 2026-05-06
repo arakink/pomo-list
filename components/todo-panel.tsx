@@ -63,22 +63,26 @@ type TodoPanelProps = {
   todos: Todo[];
   activeTaskId: string | null;
   canSetActiveTask: boolean;
+  canClearActiveTask: boolean;
   onAddTodo: (todo: Todo) => void;
   onUpdateTodo: (todo: Todo) => void;
   onUpdateTodoCompletion: (targetTodoIds: string[], completed: boolean) => void;
   onDeleteTodos: (targetTodoIds: string[]) => void;
   onSetActiveTask: (todoId: string) => void;
+  onClearActiveTask: () => void;
 };
 
 export function TodoPanel({
   todos,
   activeTaskId,
   canSetActiveTask,
+  canClearActiveTask,
   onAddTodo,
   onUpdateTodo,
   onUpdateTodoCompletion,
   onDeleteTodos,
   onSetActiveTask,
+  onClearActiveTask,
 }: TodoPanelProps) {
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("");
@@ -294,7 +298,9 @@ export function TodoPanel({
             tone="slate"
             activeTaskId={activeTaskId}
             canSetActiveTask={canSetActiveTask}
+            canClearActiveTask={canClearActiveTask}
             onSetActiveTask={onSetActiveTask}
+            onClearActiveTask={onClearActiveTask}
           />
           <TodoColumn
             title="完了済み"
@@ -307,7 +313,9 @@ export function TodoPanel({
             tone="emerald"
             activeTaskId={activeTaskId}
             canSetActiveTask={canSetActiveTask}
+            canClearActiveTask={canClearActiveTask}
             onSetActiveTask={onSetActiveTask}
+            onClearActiveTask={onClearActiveTask}
           />
         </div>
       </div>
@@ -326,7 +334,9 @@ type TodoColumnProps = {
   tone: "slate" | "emerald";
   activeTaskId: string | null;
   canSetActiveTask: boolean;
+  canClearActiveTask: boolean;
   onSetActiveTask: (todoId: string) => void;
+  onClearActiveTask: () => void;
 };
 
 function TodoColumn({
@@ -340,7 +350,9 @@ function TodoColumn({
   tone,
   activeTaskId,
   canSetActiveTask,
+  canClearActiveTask,
   onSetActiveTask,
+  onClearActiveTask,
 }: TodoColumnProps) {
   const panelClassName =
     tone === "emerald"
@@ -537,8 +549,16 @@ function TodoColumn({
                   {canSetTask ? (
                     <button
                       type="button"
-                      onClick={() => onSetActiveTask(todo.id)}
-                      disabled={!canSetActiveTask}
+                      onClick={() =>
+                        activeTaskId === todo.id && canClearActiveTask
+                          ? onClearActiveTask()
+                          : onSetActiveTask(todo.id)
+                      }
+                      disabled={
+                        activeTaskId === todo.id
+                          ? !canClearActiveTask
+                          : !canSetActiveTask
+                      }
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                         activeTaskId === todo.id
                           ? buttonClassName
@@ -546,7 +566,9 @@ function TodoColumn({
                       } disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       {activeTaskId === todo.id
-                        ? "セット中"
+                        ? canClearActiveTask
+                          ? "解除"
+                          : "セット中"
                         : canSetActiveTask
                           ? "セット"
                           : "Break後にセット"}

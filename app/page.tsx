@@ -17,6 +17,7 @@ export default function Home() {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
+  const [canClearActiveTask, setCanClearActiveTask] = useState(false);
   const currentTask: CurrentTask | null =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
 
@@ -63,6 +64,14 @@ export default function Home() {
     }
 
     setActiveTaskId(todoId);
+  };
+
+  const handleClearActiveTask = () => {
+    if (!canClearActiveTask) {
+      return;
+    }
+
+    setActiveTaskId(null);
   };
 
   const handleWorkComplete = () => {
@@ -114,16 +123,19 @@ export default function Home() {
           tagStats={tagStats}
           onWorkComplete={handleWorkComplete}
           onActiveTaskAvailabilityChange={setCanSetActiveTask}
+          onActiveTaskClearAvailabilityChange={setCanClearActiveTask}
         />
         <TodoPanel
           todos={todos}
           activeTaskId={activeTaskId}
           canSetActiveTask={canSetActiveTask}
+          canClearActiveTask={canClearActiveTask}
           onAddTodo={handleAddTodo}
           onUpdateTodo={handleUpdateTodo}
           onUpdateTodoCompletion={handleUpdateTodoCompletion}
           onDeleteTodos={handleDeleteTodos}
           onSetActiveTask={handleSetActiveTask}
+          onClearActiveTask={handleClearActiveTask}
         />
       </section>
     </main>
