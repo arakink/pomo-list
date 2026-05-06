@@ -50,6 +50,8 @@
 - タスクを変えたい場合は、Work の途中で切り替えず `Break` へ移行してから次のタスクをセットする
 - `Break` 中は次の Work に向けた active task の再セットを許可する
 - `Break` 中は、ToDo を未完了のまま保ったまま active task だけを `未設定` に戻す解除操作を許可する
+- Work をまだ開始していない段階では、active task の解除を許可する
+- Work を一度でも開始した後は、`Break` に移るまで active task の解除を行わない
 - Work セッションの加算先は、その Work を開始した時点のタスクで固定する
 - `完了として記録して Break へ` を押した時点で、その Work の記録を確定する
 - `未完了のまま Break へ` を選んだ場合も、その Work セッション中の active task は固定のまま扱う
@@ -71,6 +73,7 @@
 - Work 開始時点の task id を別 state として保持し、セッション中の表示用 active task と加算先を分けて扱えるようにする
 - `Pause` 中の切替を許可しない場合でも、Work 中の表示対象と加算先がぶれない構造を優先する
 - `Break` 中の解除は `activeTaskId = null` のみを行い、ToDo の完了状態は変更しない
+- Work 開始前の解除も `activeTaskId = null` のみを行い、ToDo の完了状態は変更しない
 
 ## 今後の検討事項
 
