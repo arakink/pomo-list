@@ -62,6 +62,7 @@ function createTodoId() {
 type TodoPanelProps = {
   todos: Todo[];
   activeTaskId: string | null;
+  canSetActiveTask: boolean;
   onAddTodo: (todo: Todo) => void;
   onUpdateTodo: (todo: Todo) => void;
   onUpdateTodoCompletion: (targetTodoIds: string[], completed: boolean) => void;
@@ -72,6 +73,7 @@ type TodoPanelProps = {
 export function TodoPanel({
   todos,
   activeTaskId,
+  canSetActiveTask,
   onAddTodo,
   onUpdateTodo,
   onUpdateTodoCompletion,
@@ -227,6 +229,9 @@ export function TodoPanel({
               このブランチでは ToDo の登録、タグ付け、完了切替までをローカル state
               で扱います。タイマーとの接続や保存はまだ行いません。
             </p>
+            <p className="max-w-md text-sm leading-6 text-slate-600">
+              Work 開始後はタスクを固定し、切り替えは Break に移ってから行います。
+            </p>
           </div>
 
           <form
@@ -288,6 +293,7 @@ export function TodoPanel({
             editing={editing}
             tone="slate"
             activeTaskId={activeTaskId}
+            canSetActiveTask={canSetActiveTask}
             onSetActiveTask={onSetActiveTask}
           />
           <TodoColumn
@@ -300,6 +306,7 @@ export function TodoPanel({
             editing={editing}
             tone="emerald"
             activeTaskId={activeTaskId}
+            canSetActiveTask={canSetActiveTask}
             onSetActiveTask={onSetActiveTask}
           />
         </div>
@@ -318,6 +325,7 @@ type TodoColumnProps = {
   editing: TodoColumnEditing;
   tone: "slate" | "emerald";
   activeTaskId: string | null;
+  canSetActiveTask: boolean;
   onSetActiveTask: (todoId: string) => void;
 };
 
@@ -331,6 +339,7 @@ function TodoColumn({
   editing,
   tone,
   activeTaskId,
+  canSetActiveTask,
   onSetActiveTask,
 }: TodoColumnProps) {
   const panelClassName =
@@ -529,13 +538,18 @@ function TodoColumn({
                     <button
                       type="button"
                       onClick={() => onSetActiveTask(todo.id)}
+                      disabled={!canSetActiveTask}
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                         activeTaskId === todo.id
                           ? buttonClassName
                           : secondaryButtonClassName
-                      }`}
+                      } disabled:cursor-not-allowed disabled:opacity-50`}
                     >
-                      {activeTaskId === todo.id ? "セット中" : "セット"}
+                      {activeTaskId === todo.id
+                        ? "セット中"
+                        : canSetActiveTask
+                          ? "セット"
+                          : "Break後にセット"}
                     </button>
                   ) : null}
                   {editing.todoId === todo.id ? (

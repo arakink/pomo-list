@@ -16,6 +16,7 @@ export default function Home() {
   const [todos, setTodos] = useState(initialTodos);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
+  const [canSetActiveTask, setCanSetActiveTask] = useState(true);
   const currentTask: CurrentTask | null =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
 
@@ -57,6 +58,10 @@ export default function Home() {
   };
 
   const handleSetActiveTask = (todoId: string) => {
+    if (!canSetActiveTask) {
+      return;
+    }
+
     setActiveTaskId(todoId);
   };
 
@@ -108,10 +113,12 @@ export default function Home() {
           currentTask={currentTask}
           tagStats={tagStats}
           onWorkComplete={handleWorkComplete}
+          onActiveTaskAvailabilityChange={setCanSetActiveTask}
         />
         <TodoPanel
           todos={todos}
           activeTaskId={activeTaskId}
+          canSetActiveTask={canSetActiveTask}
           onAddTodo={handleAddTodo}
           onUpdateTodo={handleUpdateTodo}
           onUpdateTodoCompletion={handleUpdateTodoCompletion}

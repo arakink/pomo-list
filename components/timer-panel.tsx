@@ -64,12 +64,14 @@ type TimerPanelProps = {
   currentTask: CurrentTask | null;
   tagStats: TagStat[];
   onWorkComplete: () => void;
+  onActiveTaskAvailabilityChange: (canChange: boolean) => void;
 };
 
 export function TimerPanel({
   currentTask,
   tagStats,
   onWorkComplete,
+  onActiveTaskAvailabilityChange,
 }: TimerPanelProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
@@ -161,6 +163,13 @@ export function TimerPanel({
     return clearRunningTimer;
   }, [isRunning, mode, onWorkComplete]);
 
+  useEffect(() => {
+    const canChangeActiveTask =
+      mode === "break" || (mode === "work" && !isRunning && secondsLeft === WORK_DURATION_SECONDS);
+
+    onActiveTaskAvailabilityChange(canChangeActiveTask);
+  }, [isRunning, mode, onActiveTaskAvailabilityChange, secondsLeft]);
+
   const handleModeChange = (nextMode: TimerMode) => {
     const hasStartedWorkSession =
       mode === "work" &&
@@ -237,6 +246,9 @@ export function TimerPanel({
             </div>
             <p className="mt-4 max-w-sm text-sm leading-6 text-slate-300">
               {modeDescriptions[mode]}。終了時に手動で次のモードへ切り替えます。
+            </p>
+            <p className="mt-3 max-w-sm text-xs leading-5 text-slate-400">
+              Work を始めるとタスクは固定されます。切り替えは Break に移ってから行います。
             </p>
           </div>
 
