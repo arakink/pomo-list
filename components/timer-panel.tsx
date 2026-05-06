@@ -166,11 +166,13 @@ export function TimerPanel({
   }, [isRunning, mode, onWorkComplete]);
 
   useEffect(() => {
+    const isReadyToStartWork =
+      mode === "work" && !isRunning && secondsLeft === WORK_DURATION_SECONDS;
     const canChangeActiveTask =
-      mode === "break" || (mode === "work" && !isRunning && secondsLeft === WORK_DURATION_SECONDS);
+      mode === "break" || isReadyToStartWork;
 
     onActiveTaskAvailabilityChange(canChangeActiveTask);
-    onActiveTaskClearAvailabilityChange(mode === "break");
+    onActiveTaskClearAvailabilityChange(mode === "break" || isReadyToStartWork);
   }, [
     isRunning,
     mode,
