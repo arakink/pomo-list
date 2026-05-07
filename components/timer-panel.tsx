@@ -82,6 +82,8 @@ export function TimerPanel({
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
+  const [hasStartedCurrentWorkSession, setHasStartedCurrentWorkSession] =
+    useState(false);
   const intervalRef = useRef<number | null>(null);
   const defaultTitleRef = useRef<string>("");
   const secondsLeftRef = useRef(WORK_DURATION_SECONDS);
@@ -105,6 +107,7 @@ export function TimerPanel({
     setMode(nextMode);
     setSecondsLeft(getDurationByMode(nextMode));
     setIsRunning(false);
+    setHasStartedCurrentWorkSession(false);
   };
 
   const moveWorkToBreak = (shouldCountAsCompleted: boolean) => {
@@ -171,9 +174,11 @@ export function TimerPanel({
 
   useEffect(() => {
     const isReadyToStartWork =
-      mode === "work" && !isRunning && secondsLeft === WORK_DURATION_SECONDS;
-    const canChangeActiveTask =
-      mode === "break" || isReadyToStartWork;
+      mode === "work" &&
+      !isRunning &&
+      !hasStartedCurrentWorkSession &&
+      secondsLeft === WORK_DURATION_SECONDS;
+    const canChangeActiveTask = mode === "break" || isReadyToStartWork;
     const canClearActiveTask = mode === "break" || isReadyToStartWork;
 
     if (activeTaskAvailabilityRef.current !== canChangeActiveTask) {
@@ -186,6 +191,7 @@ export function TimerPanel({
       onActiveTaskClearAvailabilityChange(canClearActiveTask);
     }
   }, [
+    hasStartedCurrentWorkSession,
     isRunning,
     mode,
     onActiveTaskAvailabilityChange,
@@ -227,10 +233,13 @@ export function TimerPanel({
     }
 
     const isStartingFreshWorkSession =
-      mode === "work" && secondsLeft === WORK_DURATION_SECONDS;
+      mode === "work" &&
+      secondsLeft === WORK_DURATION_SECONDS &&
+      !hasStartedCurrentWorkSession;
 
     if (isStartingFreshWorkSession) {
       onWorkSessionStart();
+      setHasStartedCurrentWorkSession(true);
     }
 
     setIsRunning(true);
