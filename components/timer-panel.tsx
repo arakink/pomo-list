@@ -86,6 +86,8 @@ export function TimerPanel({
   const defaultTitleRef = useRef<string>("");
   const secondsLeftRef = useRef(WORK_DURATION_SECONDS);
   const modeRef = useRef<TimerMode>("work");
+  const activeTaskAvailabilityRef = useRef<boolean | null>(null);
+  const activeTaskClearAvailabilityRef = useRef<boolean | null>(null);
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
   const hasCurrentTask = currentTask !== null;
@@ -172,9 +174,17 @@ export function TimerPanel({
       mode === "work" && !isRunning && secondsLeft === WORK_DURATION_SECONDS;
     const canChangeActiveTask =
       mode === "break" || isReadyToStartWork;
+    const canClearActiveTask = mode === "break" || isReadyToStartWork;
 
-    onActiveTaskAvailabilityChange(canChangeActiveTask);
-    onActiveTaskClearAvailabilityChange(mode === "break" || isReadyToStartWork);
+    if (activeTaskAvailabilityRef.current !== canChangeActiveTask) {
+      activeTaskAvailabilityRef.current = canChangeActiveTask;
+      onActiveTaskAvailabilityChange(canChangeActiveTask);
+    }
+
+    if (activeTaskClearAvailabilityRef.current !== canClearActiveTask) {
+      activeTaskClearAvailabilityRef.current = canClearActiveTask;
+      onActiveTaskClearAvailabilityChange(canClearActiveTask);
+    }
   }, [
     isRunning,
     mode,
