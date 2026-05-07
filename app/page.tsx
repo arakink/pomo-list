@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { TimerPanel } from "@/components/timer-panel";
 import { TodoPanel } from "@/components/todo-panel";
@@ -112,7 +112,7 @@ export default function Home() {
     setActiveTaskId(null);
   };
 
-  const handleWorkComplete = () => {
+  const handleWorkComplete = useCallback(() => {
     if (!workSessionTask) {
       return;
     }
@@ -139,9 +139,9 @@ export default function Home() {
       );
     });
     setWorkSessionTask(null);
-  };
+  }, [workSessionTask]);
 
-  const handleWorkSessionStart = () => {
+  const handleWorkSessionStart = useCallback(() => {
     if (!activeTaskId || !activeTaskFromTodos) {
       setWorkSessionTask(null);
       return;
@@ -152,7 +152,7 @@ export default function Home() {
       title: activeTaskFromTodos.title,
       tag: activeTaskFromTodos.tag,
     });
-  };
+  }, [activeTaskFromTodos, activeTaskId]);
 
   return (
     <main className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#fff7ed_0%,#f8fafc_38%,#eef2ff_100%)] px-5 py-8 text-slate-950 sm:px-8 lg:px-12 lg:py-12">
