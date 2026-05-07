@@ -2,25 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { CurrentTask, TagStat, getTagStatLabel } from "@/lib/pomo-list";
+
 const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;
 
 type TimerMode = "work" | "break";
-type CurrentTask = {
-  title: string;
-  tag: string;
-};
-type TagStat = {
-  tag: string;
-  completedCount: number;
-};
-
-const mockCurrentTask: CurrentTask | null = {
-  title: "企画書の構成をまとめる",
-  tag: "仕事",
-};
-
-const mockTagStats: TagStat[] = [];
 
 const modeLabels: Record<TimerMode, string> = {
   work: "Work",
@@ -51,20 +38,14 @@ function formatTime(totalSeconds: number) {
 
 function getCurrentTaskDescription(currentTask: CurrentTask | null) {
   if (!currentTask) {
-    return "まだ現在のタスクは未設定です。次のブランチで ToDo からセットできるようにします。";
+    return "未完了タスクからセットすると、ここに現在取り組むタスクが表示されます。";
   }
 
   if (!currentTask.tag.trim()) {
-    return "このタスクにはまだタグが設定されていません。タグの追加や編集は ToDo 管理側で行います。";
+    return "このタスクにはタグがありません。完了回数は「タグなし」として集計されます。";
   }
 
-  return "今は仮のアクティブタスク表示です。ToDo からのセット連携は次のブランチで追加します。";
-}
-
-function getTagStatLabel(tag: string) {
-  const normalizedTag = tag.trim();
-
-  return normalizedTag || "タグなし";
+  return "未完了タスクからセットした内容が表示されています。Work 完了時にこのタグへ回数が加算されます。";
 }
 
 function getTagStatKey(tag: string) {
@@ -76,23 +57,41 @@ function getTagStatsDescription(tagStats: TagStat[]) {
     return "完了した作業はタグごとに集計され、傾向をここで確認できます。";
   }
 
-  return "今は仮の統計表示です。タグがないタスクは「タグなし」として集計します。";
+  return "Work を完了すると、現在のタスクのタグごとに回数が反映されます。";
 }
 
-export function TimerPanel() {
+type TimerPanelProps = {
+  currentTask: CurrentTask | null;
+  tagStats: TagStat[];
+  onWorkComplete: () => void;
+  onWorkSessionStart: () => void;
+  onActiveTaskAvailabilityChange: (canChange: boolean) => void;
+  onActiveTaskClearAvailabilityChange: (canClear: boolean) => void;
+};
+
+export function TimerPanel({
+  currentTask,
+  tagStats,
+  onWorkComplete,
+  onWorkSessionStart,
+  onActiveTaskAvailabilityChange,
+  onActiveTaskClearAvailabilityChange,
+}: TimerPanelProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
+  const [hasStartedCurrentWorkSession, setHasStartedCurrentWorkSession] =
+    useState(false);
   const intervalRef = useRef<number | null>(null);
   const defaultTitleRef = useRef<string>("");
   const secondsLeftRef = useRef(WORK_DURATION_SECONDS);
   const modeRef = useRef<TimerMode>("work");
+  const activeTaskAvailabilityRef = useRef<boolean | null>(null);
+  const activeTaskClearAvailabilityRef = useRef<boolean | null>(null);
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
-  const currentTask = mockCurrentTask;
-  const tagStats = mockTagStats;
   const hasCurrentTask = currentTask !== null;
   const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
 
@@ -108,11 +107,13 @@ export function TimerPanel() {
     setMode(nextMode);
     setSecondsLeft(getDurationByMode(nextMode));
     setIsRunning(false);
+    setHasStartedCurrentWorkSession(false);
   };
 
   const moveWorkToBreak = (shouldCountAsCompleted: boolean) => {
     if (shouldCountAsCompleted) {
       setCompletedPomodoros((count) => count + 1);
+      onWorkComplete();
     }
 
     setIsConfirmingBreakMove(false);
@@ -163,12 +164,40 @@ export function TimerPanel() {
 
         if (modeRef.current === "work") {
           setCompletedPomodoros((count) => count + 1);
+          onWorkComplete();
         }
       }
     }, 1000);
 
     return clearRunningTimer;
-  }, [isRunning, mode]);
+  }, [isRunning, mode, onWorkComplete]);
+
+  useEffect(() => {
+    const isReadyToStartWork =
+      mode === "work" &&
+      !isRunning &&
+      !hasStartedCurrentWorkSession &&
+      secondsLeft === WORK_DURATION_SECONDS;
+    const canChangeActiveTask = mode === "break" || isReadyToStartWork;
+    const canClearActiveTask = mode === "break" || isReadyToStartWork;
+
+    if (activeTaskAvailabilityRef.current !== canChangeActiveTask) {
+      activeTaskAvailabilityRef.current = canChangeActiveTask;
+      onActiveTaskAvailabilityChange(canChangeActiveTask);
+    }
+
+    if (activeTaskClearAvailabilityRef.current !== canClearActiveTask) {
+      activeTaskClearAvailabilityRef.current = canClearActiveTask;
+      onActiveTaskClearAvailabilityChange(canClearActiveTask);
+    }
+  }, [
+    hasStartedCurrentWorkSession,
+    isRunning,
+    mode,
+    onActiveTaskAvailabilityChange,
+    onActiveTaskClearAvailabilityChange,
+    secondsLeft,
+  ]);
 
   const handleModeChange = (nextMode: TimerMode) => {
     const hasStartedWorkSession =
@@ -201,6 +230,16 @@ export function TimerPanel() {
 
     if (!canStart) {
       return;
+    }
+
+    const isStartingFreshWorkSession =
+      mode === "work" &&
+      secondsLeft === WORK_DURATION_SECONDS &&
+      !hasStartedCurrentWorkSession;
+
+    if (isStartingFreshWorkSession) {
+      onWorkSessionStart();
+      setHasStartedCurrentWorkSession(true);
     }
 
     setIsRunning(true);
@@ -246,6 +285,9 @@ export function TimerPanel() {
             </div>
             <p className="mt-4 max-w-sm text-sm leading-6 text-slate-300">
               {modeDescriptions[mode]}。終了時に手動で次のモードへ切り替えます。
+            </p>
+            <p className="mt-3 max-w-sm text-xs leading-5 text-slate-400">
+              Work を始めるとタスクは固定されます。切り替えは Break に移ってから行います。
             </p>
           </div>
 
@@ -341,7 +383,7 @@ export function TimerPanel() {
               </p>
             </div>
             <p className="text-sm text-slate-500">
-              {tagStats.length > 0 ? "Mock Data" : "Empty State"}
+              {tagStats.length > 0 ? "Live Data" : "Empty State"}
             </p>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">

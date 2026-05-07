@@ -1,7 +1,154 @@
+"use client";
+
+import { useCallback, useState } from "react";
+
 import { TimerPanel } from "@/components/timer-panel";
 import { TodoPanel } from "@/components/todo-panel";
+import {
+  CurrentTask,
+  TagStat,
+  Todo,
+  getTagStatLabel,
+  initialTodos,
+} from "@/lib/pomo-list";
 
 export default function Home() {
+  const [todos, setTodos] = useState(initialTodos);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [tagStats, setTagStats] = useState<TagStat[]>([]);
+  const [canSetActiveTask, setCanSetActiveTask] = useState(true);
+  const [canClearActiveTask, setCanClearActiveTask] = useState(true);
+  const [workSessionTask, setWorkSessionTask] = useState<CurrentTask | null>(null);
+  const activeTaskFromTodos =
+    todos.find((todo) => todo.id === activeTaskId) ?? null;
+  const isWorkSessionLocked = !canSetActiveTask && !canClearActiveTask;
+  const currentTask: CurrentTask | null = isWorkSessionLocked
+    ? workSessionTask
+      ? {
+          title: workSessionTask.title,
+          tag: workSessionTask.tag,
+        }
+      : null
+    : activeTaskFromTodos;
+
+  const clearInvalidActiveTaskIfNeeded = (canChangeActiveTask: boolean) => {
+    if (!canChangeActiveTask || activeTaskId === null) {
+      return;
+    }
+
+    const activeTodo = todos.find((todo) => todo.id === activeTaskId);
+
+    if (!activeTodo || activeTodo.completed) {
+      setActiveTaskId(null);
+    }
+  };
+
+  const handleActiveTaskAvailabilityChange = (canChangeActiveTask: boolean) => {
+    setCanSetActiveTask(canChangeActiveTask);
+    clearInvalidActiveTaskIfNeeded(canChangeActiveTask);
+  };
+
+  const handleAddTodo = (todo: Todo) => {
+    setTodos((currentTodos) => [todo, ...currentTodos]);
+  };
+
+  const handleUpdateTodo = (updatedTodo: Todo) => {
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        todo.id === updatedTodo.id ? updatedTodo : todo,
+      ),
+    );
+  };
+
+  const handleUpdateTodoCompletion = (
+    targetTodoIds: string[],
+    completed: boolean,
+  ) => {
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        targetTodoIds.includes(todo.id) ? { ...todo, completed } : todo,
+      ),
+    );
+
+    if (
+      completed &&
+      activeTaskId !== null &&
+      targetTodoIds.includes(activeTaskId)
+    ) {
+      setActiveTaskId(null);
+    }
+  };
+
+  const handleDeleteTodos = (targetTodoIds: string[]) => {
+    setTodos((currentTodos) =>
+      currentTodos.filter((todo) => !targetTodoIds.includes(todo.id)),
+    );
+
+    if (
+      activeTaskId !== null &&
+      targetTodoIds.includes(activeTaskId)
+    ) {
+      setActiveTaskId(null);
+    }
+  };
+
+  const handleSetActiveTask = (todoId: string) => {
+    if (!canSetActiveTask) {
+      return;
+    }
+
+    setActiveTaskId(todoId);
+  };
+
+  const handleClearActiveTask = () => {
+    if (!canClearActiveTask) {
+      return;
+    }
+
+    setActiveTaskId(null);
+  };
+
+  const handleWorkComplete = useCallback(() => {
+    if (!workSessionTask) {
+      return;
+    }
+
+    const targetTag = getTagStatLabel(workSessionTask.tag);
+
+    setTagStats((currentStats) => {
+      const existingStat = currentStats.find((stat) => stat.tag === targetTag);
+
+      if (!existingStat) {
+        return [
+          ...currentStats,
+          {
+            tag: targetTag,
+            completedCount: 1,
+          },
+        ];
+      }
+
+      return currentStats.map((stat) =>
+        stat.tag === targetTag
+          ? { ...stat, completedCount: stat.completedCount + 1 }
+          : stat,
+      );
+    });
+    setWorkSessionTask(null);
+  }, [workSessionTask]);
+
+  const handleWorkSessionStart = useCallback(() => {
+    if (!activeTaskId || !activeTaskFromTodos) {
+      setWorkSessionTask(null);
+      return;
+    }
+
+    setWorkSessionTask({
+      title: activeTaskFromTodos.title,
+      tag: activeTaskFromTodos.tag,
+    });
+  }, [activeTaskFromTodos, activeTaskId]);
+
   return (
     <main className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#fff7ed_0%,#f8fafc_38%,#eef2ff_100%)] px-5 py-8 text-slate-950 sm:px-8 lg:px-12 lg:py-12">
       <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8">
@@ -18,8 +165,26 @@ export default function Home() {
           </p>
         </div>
 
-        <TimerPanel />
-        <TodoPanel />
+        <TimerPanel
+          currentTask={currentTask}
+          tagStats={tagStats}
+          onWorkComplete={handleWorkComplete}
+          onWorkSessionStart={handleWorkSessionStart}
+          onActiveTaskAvailabilityChange={handleActiveTaskAvailabilityChange}
+          onActiveTaskClearAvailabilityChange={setCanClearActiveTask}
+        />
+        <TodoPanel
+          todos={todos}
+          activeTaskId={activeTaskId}
+          canSetActiveTask={canSetActiveTask}
+          canClearActiveTask={canClearActiveTask}
+          onAddTodo={handleAddTodo}
+          onUpdateTodo={handleUpdateTodo}
+          onUpdateTodoCompletion={handleUpdateTodoCompletion}
+          onDeleteTodos={handleDeleteTodos}
+          onSetActiveTask={handleSetActiveTask}
+          onClearActiveTask={handleClearActiveTask}
+        />
       </section>
     </main>
   );

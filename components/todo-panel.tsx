@@ -2,12 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
-type Todo = {
-  id: string;
-  title: string;
-  tag: string;
-  completed: boolean;
-};
+import { Todo } from "@/lib/pomo-list";
 
 type ColumnType = "incomplete" | "completed";
 type SelectionMode = "toggleStatus" | "delete" | null;
@@ -60,27 +55,35 @@ function getSelectionDescription(
     : "未完了へ戻したいタスクを選んでください。";
 }
 
-const initialTodos: Todo[] = [
-  {
-    id: "todo-1",
-    title: "朝会の前に進行メモを確認する",
-    tag: "仕事",
-    completed: false,
-  },
-  {
-    id: "todo-2",
-    title: "買い物リストを整理する",
-    tag: "生活",
-    completed: true,
-  },
-];
-
 function createTodoId() {
   return `todo-${crypto.randomUUID()}`;
 }
 
-export function TodoPanel() {
-  const [todos, setTodos] = useState<Todo[]>(initialTodos);
+type TodoPanelProps = {
+  todos: Todo[];
+  activeTaskId: string | null;
+  canSetActiveTask: boolean;
+  canClearActiveTask: boolean;
+  onAddTodo: (todo: Todo) => void;
+  onUpdateTodo: (todo: Todo) => void;
+  onUpdateTodoCompletion: (targetTodoIds: string[], completed: boolean) => void;
+  onDeleteTodos: (targetTodoIds: string[]) => void;
+  onSetActiveTask: (todoId: string) => void;
+  onClearActiveTask: () => void;
+};
+
+export function TodoPanel({
+  todos,
+  activeTaskId,
+  canSetActiveTask,
+  canClearActiveTask,
+  onAddTodo,
+  onUpdateTodo,
+  onUpdateTodoCompletion,
+  onDeleteTodos,
+  onSetActiveTask,
+  onClearActiveTask,
+}: TodoPanelProps) {
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("");
   const [selectedTodoIds, setSelectedTodoIds] = useState<string[]>([]);
@@ -103,15 +106,12 @@ export function TodoPanel() {
       return;
     }
 
-    setTodos((currentTodos) => [
-      {
-        id: createTodoId(),
-        title: trimmedTitle,
-        tag: trimmedTag,
-        completed: false,
-      },
-      ...currentTodos,
-    ]);
+    onAddTodo({
+      id: createTodoId(),
+      title: trimmedTitle,
+      tag: trimmedTag,
+      completed: false,
+    });
     setTitle("");
     setTag("");
   };
@@ -140,11 +140,7 @@ export function TodoPanel() {
   };
 
   const moveSelectedTodos = (completed: boolean) => {
-    setTodos((currentTodos) =>
-      currentTodos.map((todo) =>
-        selectedTodoIds.includes(todo.id) ? { ...todo, completed } : todo,
-      ),
-    );
+    onUpdateTodoCompletion(selectedTodoIds, completed);
     cancelSelection();
   };
 
@@ -168,20 +164,23 @@ export function TodoPanel() {
       return;
     }
 
-    setTodos((currentTodos) =>
-      currentTodos.map((todo) =>
-        todo.id === id
-          ? { ...todo, title: trimmedTitle, tag: trimmedTag }
-          : todo,
-      ),
-    );
+    const todo = todos.find((currentTodo) => currentTodo.id === id);
+
+    if (!todo) {
+      cancelEditingTodo();
+      return;
+    }
+
+    onUpdateTodo({
+      ...todo,
+      title: trimmedTitle,
+      tag: trimmedTag,
+    });
     cancelEditingTodo();
   };
 
   const deleteSelectedTodos = () => {
-    setTodos((currentTodos) =>
-      currentTodos.filter((todo) => !selectedTodoIds.includes(todo.id)),
-    );
+    onDeleteTodos(selectedTodoIds);
 
     if (editingTodoId !== null && selectedTodoIds.includes(editingTodoId)) {
       cancelEditingTodo();
@@ -231,8 +230,11 @@ export function TodoPanel() {
               今日のタスクを追加して、状態ごとに整理する。
             </h2>
             <p className="max-w-md text-sm leading-6 text-slate-600">
-              このブランチでは ToDo の登録、タグ付け、完了切替までをローカル state
-              で扱います。タイマーとの接続や保存はまだ行いません。
+              このブランチでは ToDo の登録、タグ付け、完了切替に加えて、
+              アクティブタスクとしてタイマーへセットする操作までを扱います。保存はまだ行いません。
+            </p>
+            <p className="max-w-md text-sm leading-6 text-slate-600">
+              Work 開始後はタスクを固定し、切り替えは Break に移ってから行います。
             </p>
           </div>
 
@@ -294,6 +296,11 @@ export function TodoPanel() {
             selection={createSelection("incomplete")}
             editing={editing}
             tone="slate"
+            activeTaskId={activeTaskId}
+            canSetActiveTask={canSetActiveTask}
+            canClearActiveTask={canClearActiveTask}
+            onSetActiveTask={onSetActiveTask}
+            onClearActiveTask={onClearActiveTask}
           />
           <TodoColumn
             title="完了済み"
@@ -304,6 +311,11 @@ export function TodoPanel() {
             selection={createSelection("completed")}
             editing={editing}
             tone="emerald"
+            activeTaskId={activeTaskId}
+            canSetActiveTask={canSetActiveTask}
+            canClearActiveTask={canClearActiveTask}
+            onSetActiveTask={onSetActiveTask}
+            onClearActiveTask={onClearActiveTask}
           />
         </div>
       </div>
@@ -320,6 +332,11 @@ type TodoColumnProps = {
   selection: TodoColumnSelection;
   editing: TodoColumnEditing;
   tone: "slate" | "emerald";
+  activeTaskId: string | null;
+  canSetActiveTask: boolean;
+  canClearActiveTask: boolean;
+  onSetActiveTask: (todoId: string) => void;
+  onClearActiveTask: () => void;
 };
 
 function TodoColumn({
@@ -331,6 +348,11 @@ function TodoColumn({
   selection,
   editing,
   tone,
+  activeTaskId,
+  canSetActiveTask,
+  canClearActiveTask,
+  onSetActiveTask,
+  onClearActiveTask,
 }: TodoColumnProps) {
   const panelClassName =
     tone === "emerald"
@@ -381,6 +403,7 @@ function TodoColumn({
     selection.mode,
     columnType,
   );
+  const canSetTask = columnType === "incomplete" && !isSelectingInThisColumn;
 
   return (
     <section className={`rounded-[1.75rem] p-5 ${panelClassName}`}>
@@ -490,9 +513,22 @@ function TodoColumn({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className={`text-base font-semibold leading-6 ${titleClassName}`}>
-                      {todo.title}
-                    </p>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <p className={`text-base font-semibold leading-6 ${titleClassName}`}>
+                        {todo.title}
+                      </p>
+                      {activeTaskId === todo.id ? (
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                            tone === "emerald"
+                              ? "bg-white/12 text-white"
+                              : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          Current
+                        </span>
+                      ) : null}
+                    </div>
                     {todo.tag ? (
                       <span
                         className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${tagClassName}`}
@@ -505,7 +541,39 @@ function TodoColumn({
                   </div>
                 )}
 
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div
+                  className={`grid gap-2 ${
+                    canSetTask ? "sm:grid-cols-3" : "sm:grid-cols-2"
+                  }`}
+                >
+                  {canSetTask ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        activeTaskId === todo.id && canClearActiveTask
+                          ? onClearActiveTask()
+                          : onSetActiveTask(todo.id)
+                      }
+                      disabled={
+                        activeTaskId === todo.id
+                          ? !canClearActiveTask
+                          : !canSetActiveTask
+                      }
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                        activeTaskId === todo.id
+                          ? buttonClassName
+                          : secondaryButtonClassName
+                      } disabled:cursor-not-allowed disabled:opacity-50`}
+                    >
+                      {activeTaskId === todo.id
+                        ? canClearActiveTask
+                          ? "解除"
+                          : "セット中"
+                        : canSetActiveTask
+                          ? "セット"
+                          : "Break後にセット"}
+                    </button>
+                  ) : null}
                   {editing.todoId === todo.id ? (
                     <button
                       type="button"

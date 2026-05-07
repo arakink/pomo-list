@@ -35,6 +35,8 @@ ToDo 管理の土台を作る。追加、完了切替、タグ管理、一覧表
 
 ToDo の「セット」ボタンで active task をタイマーへ連携し、作業完了時にそのタスクとタグへ回数加算する。ここが機能的な本体。
 
+詳細: [feature-04-timer-todo-integration.md](./branches/feature-04-timer-todo-integration.md)
+
 ### `feature/05-polish-persistence`
 
 レスポンシブ調整、`localStorage` 保存、通知音、見た目の仕上げ。壊しやすいので最後にまとめる。
