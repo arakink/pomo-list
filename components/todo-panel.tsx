@@ -230,8 +230,8 @@ export function TodoPanel({
               今日のタスクを追加して、状態ごとに整理する。
             </h2>
             <p className="max-w-md text-sm leading-6 text-slate-600">
-              このブランチでは ToDo の登録、タグ付け、完了切替までをローカル state
-              で扱います。タイマーとの接続や保存はまだ行いません。
+              このブランチでは ToDo の登録、タグ付け、完了切替に加えて、
+              アクティブタスクとしてタイマーへセットする操作までを扱います。保存はまだ行いません。
             </p>
             <p className="max-w-md text-sm leading-6 text-slate-600">
               Work 開始後はタスクを固定し、切り替えは Break に移ってから行います。
