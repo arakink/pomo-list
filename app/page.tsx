@@ -18,10 +18,7 @@ export default function Home() {
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
   const [canClearActiveTask, setCanClearActiveTask] = useState(true);
-  const [workSessionTask, setWorkSessionTask] = useState<{
-    title: string;
-    tag: string;
-  } | null>(null);
+  const [workSessionTask, setWorkSessionTask] = useState<CurrentTask | null>(null);
   const activeTaskFromTodos =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
   const isWorkSessionLocked = !canSetActiveTask && !canClearActiveTask;
