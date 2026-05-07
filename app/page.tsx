@@ -77,8 +77,7 @@ export default function Home() {
     if (
       completed &&
       activeTaskId !== null &&
-      targetTodoIds.includes(activeTaskId) &&
-      !isWorkSessionLocked
+      targetTodoIds.includes(activeTaskId)
     ) {
       setActiveTaskId(null);
     }
@@ -91,8 +90,7 @@ export default function Home() {
 
     if (
       activeTaskId !== null &&
-      targetTodoIds.includes(activeTaskId) &&
-      !isWorkSessionLocked
+      targetTodoIds.includes(activeTaskId)
     ) {
       setActiveTaskId(null);
     }
