@@ -20,10 +20,37 @@ export default function Home() {
   const [canClearActiveTask, setCanClearActiveTask] = useState(false);
   const [workSessionTask, setWorkSessionTask] = useState<{
     taskId: string;
+    title: string;
     tag: string;
   } | null>(null);
-  const currentTask: CurrentTask | null =
+  const activeTaskFromTodos =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
+  const isWorkSessionLocked = !canSetActiveTask && !canClearActiveTask;
+  const currentTask: CurrentTask | null =
+    activeTaskFromTodos ??
+    (isWorkSessionLocked && workSessionTask
+      ? {
+          title: workSessionTask.title,
+          tag: workSessionTask.tag,
+        }
+      : null);
+
+  const clearInvalidActiveTaskIfNeeded = (canChangeActiveTask: boolean) => {
+    if (!canChangeActiveTask || activeTaskId === null) {
+      return;
+    }
+
+    const activeTodo = todos.find((todo) => todo.id === activeTaskId);
+
+    if (!activeTodo || activeTodo.completed) {
+      setActiveTaskId(null);
+    }
+  };
+
+  const handleActiveTaskAvailabilityChange = (canChangeActiveTask: boolean) => {
+    setCanSetActiveTask(canChangeActiveTask);
+    clearInvalidActiveTaskIfNeeded(canChangeActiveTask);
+  };
 
   const handleAddTodo = (todo: Todo) => {
     setTodos((currentTodos) => [todo, ...currentTodos]);
@@ -47,7 +74,12 @@ export default function Home() {
       ),
     );
 
-    if (completed && activeTaskId !== null && targetTodoIds.includes(activeTaskId)) {
+    if (
+      completed &&
+      activeTaskId !== null &&
+      targetTodoIds.includes(activeTaskId) &&
+      !isWorkSessionLocked
+    ) {
       setActiveTaskId(null);
     }
   };
@@ -57,7 +89,11 @@ export default function Home() {
       currentTodos.filter((todo) => !targetTodoIds.includes(todo.id)),
     );
 
-    if (activeTaskId !== null && targetTodoIds.includes(activeTaskId)) {
+    if (
+      activeTaskId !== null &&
+      targetTodoIds.includes(activeTaskId) &&
+      !isWorkSessionLocked
+    ) {
       setActiveTaskId(null);
     }
   };
@@ -108,14 +144,15 @@ export default function Home() {
   };
 
   const handleWorkSessionStart = () => {
-    if (!activeTaskId || !currentTask) {
+    if (!activeTaskId || !activeTaskFromTodos) {
       setWorkSessionTask(null);
       return;
     }
 
     setWorkSessionTask({
       taskId: activeTaskId,
-      tag: currentTask.tag,
+      title: activeTaskFromTodos.title,
+      tag: activeTaskFromTodos.tag,
     });
   };
 
@@ -140,7 +177,7 @@ export default function Home() {
           tagStats={tagStats}
           onWorkComplete={handleWorkComplete}
           onWorkSessionStart={handleWorkSessionStart}
-          onActiveTaskAvailabilityChange={setCanSetActiveTask}
+          onActiveTaskAvailabilityChange={handleActiveTaskAvailabilityChange}
           onActiveTaskClearAvailabilityChange={setCanClearActiveTask}
         />
         <TodoPanel
