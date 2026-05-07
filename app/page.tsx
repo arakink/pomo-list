@@ -25,14 +25,14 @@ export default function Home() {
   const activeTaskFromTodos =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
   const isWorkSessionLocked = !canSetActiveTask && !canClearActiveTask;
-  const currentTask: CurrentTask | null =
-    activeTaskFromTodos ??
-    (isWorkSessionLocked && workSessionTask
+  const currentTask: CurrentTask | null = isWorkSessionLocked
+    ? workSessionTask
       ? {
           title: workSessionTask.title,
           tag: workSessionTask.tag,
         }
-      : null);
+      : null
+    : activeTaskFromTodos;
 
   const clearInvalidActiveTaskIfNeeded = (canChangeActiveTask: boolean) => {
     if (!canChangeActiveTask || activeTaskId === null) {
