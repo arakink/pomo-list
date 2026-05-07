@@ -19,7 +19,6 @@ export default function Home() {
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
   const [canClearActiveTask, setCanClearActiveTask] = useState(true);
   const [workSessionTask, setWorkSessionTask] = useState<{
-    taskId: string;
     title: string;
     tag: string;
   } | null>(null);
@@ -148,7 +147,6 @@ export default function Home() {
     }
 
     setWorkSessionTask({
-      taskId: activeTaskId,
       title: activeTaskFromTodos.title,
       tag: activeTaskFromTodos.tag,
     });
