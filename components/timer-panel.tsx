@@ -64,6 +64,7 @@ type TimerPanelProps = {
   currentTask: CurrentTask | null;
   tagStats: TagStat[];
   onWorkComplete: () => void;
+  onWorkSessionStart: () => void;
   onActiveTaskAvailabilityChange: (canChange: boolean) => void;
   onActiveTaskClearAvailabilityChange: (canClear: boolean) => void;
 };
@@ -72,6 +73,7 @@ export function TimerPanel({
   currentTask,
   tagStats,
   onWorkComplete,
+  onWorkSessionStart,
   onActiveTaskAvailabilityChange,
   onActiveTaskClearAvailabilityChange,
 }: TimerPanelProps) {
@@ -212,6 +214,13 @@ export function TimerPanel({
 
     if (!canStart) {
       return;
+    }
+
+    const isStartingFreshWorkSession =
+      mode === "work" && secondsLeft === WORK_DURATION_SECONDS;
+
+    if (isStartingFreshWorkSession) {
+      onWorkSessionStart();
     }
 
     setIsRunning(true);

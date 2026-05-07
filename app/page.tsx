@@ -18,6 +18,10 @@ export default function Home() {
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
   const [canClearActiveTask, setCanClearActiveTask] = useState(false);
+  const [workSessionTask, setWorkSessionTask] = useState<{
+    taskId: string;
+    tag: string;
+  } | null>(null);
   const currentTask: CurrentTask | null =
     todos.find((todo) => todo.id === activeTaskId) ?? null;
 
@@ -75,11 +79,11 @@ export default function Home() {
   };
 
   const handleWorkComplete = () => {
-    if (!currentTask) {
+    if (!workSessionTask) {
       return;
     }
 
-    const targetTag = getTagStatLabel(currentTask.tag);
+    const targetTag = getTagStatLabel(workSessionTask.tag);
 
     setTagStats((currentStats) => {
       const existingStat = currentStats.find((stat) => stat.tag === targetTag);
@@ -99,6 +103,19 @@ export default function Home() {
           ? { ...stat, completedCount: stat.completedCount + 1 }
           : stat,
       );
+    });
+    setWorkSessionTask(null);
+  };
+
+  const handleWorkSessionStart = () => {
+    if (!activeTaskId || !currentTask) {
+      setWorkSessionTask(null);
+      return;
+    }
+
+    setWorkSessionTask({
+      taskId: activeTaskId,
+      tag: currentTask.tag,
     });
   };
 
@@ -122,6 +139,7 @@ export default function Home() {
           currentTask={currentTask}
           tagStats={tagStats}
           onWorkComplete={handleWorkComplete}
+          onWorkSessionStart={handleWorkSessionStart}
           onActiveTaskAvailabilityChange={setCanSetActiveTask}
           onActiveTaskClearAvailabilityChange={setCanClearActiveTask}
         />
