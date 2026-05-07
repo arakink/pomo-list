@@ -17,7 +17,7 @@ export default function Home() {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
-  const [canClearActiveTask, setCanClearActiveTask] = useState(false);
+  const [canClearActiveTask, setCanClearActiveTask] = useState(true);
   const [workSessionTask, setWorkSessionTask] = useState<{
     taskId: string;
     title: string;
