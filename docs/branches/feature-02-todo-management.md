@@ -35,7 +35,7 @@
 
 - 1件の ToDo は `id` `title` `tag` `completed` を持つ
 - この段階ではメモリ上の state 管理でよい
-- 永続化は `feature/05-polish-persistence` で対応する
+- 永続化は `feature/05-localstorage-persistence` で対応する
 
 ## このブランチでやらないこと
 

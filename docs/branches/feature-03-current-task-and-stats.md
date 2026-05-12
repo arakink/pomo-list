@@ -48,7 +48,7 @@
 
 - この段階では仮データまたは空状態でよい
 - 表示の土台を先に作り、実際の ToDo 連携は次ブランチで追加する
-- 永続化は `feature/05-polish-persistence` まで行わない
+- 永続化は `feature/05-localstorage-persistence` まで行わない
 
 ## このブランチでやらないこと
 

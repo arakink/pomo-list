@@ -16,7 +16,7 @@ PomoList は ToDo 管理を備えたポモドーロタイマーアプリです�
 - 大きなリファクタより、小さく段階的な変更を優先する
 - 明示的な依頼がない限り、既存の見た目の方向性は保つ
 - 現在のブランチでより広い状態管理が必要になるまでは、まず単純なローカル state を優先する
-- `feature/05-polish-persistence` より前に永続化を追加しない
+- `feature/05-localstorage-persistence` より前に永続化を追加しない
 - `feature/04-timer-todo-integration` より前にタイマーと ToDo の連携を追加しない
 
 ## 実装時の方針
