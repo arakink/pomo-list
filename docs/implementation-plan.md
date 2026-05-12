@@ -13,7 +13,8 @@ PomoList is a web app built around the concept:
 2. `feature/02-todo-management`
 3. `feature/03-current-task-and-stats`
 4. `feature/04-timer-todo-integration`
-5. `feature/05-polish-persistence`
+5. `feature/05-localstorage-persistence`
+6. `feature/06-polish-ui-feedback`
 
 ## Implementation Steps
 
@@ -37,6 +38,10 @@ ToDo の「セット」ボタンで active task をタイマーへ連携し、�
 
 詳細: [feature-04-timer-todo-integration.md](./branches/feature-04-timer-todo-integration.md)
 
-### `feature/05-polish-persistence`
+### `feature/05-localstorage-persistence`
 
-レスポンシブ調整、`localStorage` 保存、通知音、見た目の仕上げ。壊しやすいので最後にまとめる。
+`localStorage` 保存を追加する。ToDo、active task、統計など、アプリ利用の継続に必要な状態をリロード後も復元できるようにする。
+
+### `feature/06-polish-ui-feedback`
+
+レスポンシブ調整、通知音、見た目の仕上げを行う。機能本体と永続化の挙動が固まったあとに、UI の polish をまとめて調整する。
