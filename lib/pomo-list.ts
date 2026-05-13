@@ -118,26 +118,6 @@ export function createInitialPersistedAppState(): PersistedAppState {
   };
 }
 
-export function loadPersistedAppState(): PersistedAppState {
-  const initialState = createInitialPersistedAppState();
-
-  if (typeof window === "undefined") {
-    return initialState;
-  }
-
-  const storedValue = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-
-  if (!storedValue) {
-    return initialState;
-  }
-
-  try {
-    return parsePersistedAppState(storedValue) ?? initialState;
-  } catch {
-    return initialState;
-  }
-}
-
 export const initialTodos: Todo[] = [
   {
     id: "todo-1",
