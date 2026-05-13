@@ -1,21 +1,28 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { TimerPanel } from "@/components/timer-panel";
 import { TodoPanel } from "@/components/todo-panel";
 import {
   CurrentTask,
+  LOCAL_STORAGE_KEY,
+  loadPersistedAppState,
   TagStat,
   Todo,
   getTagStatLabel,
-  initialTodos,
+  sanitizeActiveTaskId,
 } from "@/lib/pomo-list";
 
 export default function Home() {
-  const [todos, setTodos] = useState(initialTodos);
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  const [tagStats, setTagStats] = useState<TagStat[]>([]);
+  const [initialPersistedState] = useState(loadPersistedAppState);
+  const [todos, setTodos] = useState(initialPersistedState.todos);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(
+    initialPersistedState.activeTaskId,
+  );
+  const [tagStats, setTagStats] = useState<TagStat[]>(
+    initialPersistedState.tagStats,
+  );
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
   const [canClearActiveTask, setCanClearActiveTask] = useState(true);
   const [workSessionTask, setWorkSessionTask] = useState<CurrentTask | null>(null);
@@ -36,12 +43,21 @@ export default function Home() {
       return;
     }
 
-    const activeTodo = todos.find((todo) => todo.id === activeTaskId);
-
-    if (!activeTodo || activeTodo.completed) {
+    if (sanitizeActiveTaskId(todos, activeTaskId) === null) {
       setActiveTaskId(null);
     }
   };
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        todos,
+        activeTaskId: sanitizeActiveTaskId(todos, activeTaskId),
+        tagStats,
+      }),
+    );
+  }, [activeTaskId, tagStats, todos]);
 
   const handleActiveTaskAvailabilityChange = (canChangeActiveTask: boolean) => {
     setCanSetActiveTask(canChangeActiveTask);
