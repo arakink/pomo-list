@@ -6,23 +6,26 @@ import { TimerPanel } from "@/components/timer-panel";
 import { TodoPanel } from "@/components/todo-panel";
 import {
   CurrentTask,
+  createInitialPersistedAppState,
   LOCAL_STORAGE_KEY,
-  loadPersistedAppState,
+  PersistedAppState,
   TagStat,
   Todo,
   getTagStatLabel,
+  parsePersistedAppState,
   sanitizeActiveTaskId,
 } from "@/lib/pomo-list";
 
 export default function Home() {
-  const [initialPersistedState] = useState(loadPersistedAppState);
-  const [todos, setTodos] = useState(initialPersistedState.todos);
+  const [persistedState, setPersistedState] = useState<PersistedAppState>(
+    createInitialPersistedAppState,
+  );
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const [todos, setTodos] = useState(persistedState.todos);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(
-    initialPersistedState.activeTaskId,
+    persistedState.activeTaskId,
   );
-  const [tagStats, setTagStats] = useState<TagStat[]>(
-    initialPersistedState.tagStats,
-  );
+  const [tagStats, setTagStats] = useState<TagStat[]>(persistedState.tagStats);
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
   const [canClearActiveTask, setCanClearActiveTask] = useState(true);
   const [workSessionTask, setWorkSessionTask] = useState<CurrentTask | null>(null);
@@ -49,6 +52,41 @@ export default function Home() {
   };
 
   useEffect(() => {
+    queueMicrotask(() => {
+      const storedValue = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+
+      if (!storedValue) {
+        setHasHydrated(true);
+        return;
+      }
+
+      try {
+        const nextPersistedState =
+          parsePersistedAppState(storedValue) ??
+          createInitialPersistedAppState();
+
+        setPersistedState(nextPersistedState);
+        setTodos(nextPersistedState.todos);
+        setActiveTaskId(nextPersistedState.activeTaskId);
+        setTagStats(nextPersistedState.tagStats);
+      } catch {
+        const initialState = createInitialPersistedAppState();
+
+        setPersistedState(initialState);
+        setTodos(initialState.todos);
+        setActiveTaskId(initialState.activeTaskId);
+        setTagStats(initialState.tagStats);
+      }
+
+      setHasHydrated(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
     window.localStorage.setItem(
       LOCAL_STORAGE_KEY,
       JSON.stringify({
@@ -57,7 +95,7 @@ export default function Home() {
         tagStats,
       }),
     );
-  }, [activeTaskId, tagStats, todos]);
+  }, [activeTaskId, hasHydrated, tagStats, todos]);
 
   const handleActiveTaskAvailabilityChange = (canChangeActiveTask: boolean) => {
     setCanSetActiveTask(canChangeActiveTask);
