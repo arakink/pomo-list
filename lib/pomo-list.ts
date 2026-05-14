@@ -15,10 +15,123 @@ export type TagStat = {
   completedCount: number;
 };
 
+export type PersistedAppState = {
+  todos: Todo[];
+  activeTaskId: string | null;
+  tagStats: TagStat[];
+};
+
+export const LOCAL_STORAGE_KEY = "pomo-list-app-state";
+
 export function getTagStatLabel(tag: string) {
   const normalizedTag = tag.trim();
 
   return normalizedTag || "タグなし";
+}
+
+function isTodo(value: unknown): value is Todo {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.title === "string" &&
+    typeof candidate.tag === "string" &&
+    typeof candidate.completed === "boolean"
+  );
+}
+
+function isTagStat(value: unknown): value is TagStat {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.tag === "string" &&
+    typeof candidate.completedCount === "number" &&
+    Number.isSafeInteger(candidate.completedCount) &&
+    candidate.completedCount >= 0
+  );
+}
+
+export function sanitizeActiveTaskId(
+  todos: Todo[],
+  activeTaskId: string | null,
+) {
+  if (activeTaskId === null) {
+    return null;
+  }
+
+  const activeTodo = todos.find((todo) => todo.id === activeTaskId);
+
+  if (!activeTodo || activeTodo.completed) {
+    return null;
+  }
+
+  return activeTaskId;
+}
+
+export function parsePersistedAppState(
+  value: string,
+): PersistedAppState | null {
+  const parsedValue: unknown = JSON.parse(value);
+
+  if (typeof parsedValue !== "object" || parsedValue === null) {
+    return null;
+  }
+
+  const candidate = parsedValue as Record<string, unknown>;
+
+  if (!Array.isArray(candidate.todos) || !candidate.todos.every(isTodo)) {
+    return null;
+  }
+
+  const todoIds = candidate.todos.map((todo) => todo.id);
+
+  if (new Set(todoIds).size !== todoIds.length) {
+    return null;
+  }
+
+  if (
+    candidate.activeTaskId !== null &&
+    typeof candidate.activeTaskId !== "string"
+  ) {
+    return null;
+  }
+
+  if (
+    !Array.isArray(candidate.tagStats) ||
+    !candidate.tagStats.every(isTagStat)
+  ) {
+    return null;
+  }
+
+  const normalizedTags = candidate.tagStats.map((stat) =>
+    getTagStatLabel(stat.tag),
+  );
+
+  if (new Set(normalizedTags).size !== normalizedTags.length) {
+    return null;
+  }
+
+  return {
+    todos: candidate.todos,
+    activeTaskId: sanitizeActiveTaskId(candidate.todos, candidate.activeTaskId),
+    tagStats: candidate.tagStats,
+  };
+}
+
+export function createInitialPersistedAppState(): PersistedAppState {
+  return {
+    todos: initialTodos,
+    activeTaskId: null,
+    tagStats: [],
+  };
 }
 
 export const initialTodos: Todo[] = [
