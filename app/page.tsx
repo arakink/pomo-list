@@ -53,14 +53,13 @@ export default function Home() {
 
   useEffect(() => {
     queueMicrotask(() => {
-      const storedValue = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-
-      if (!storedValue) {
-        setHasHydrated(true);
-        return;
-      }
-
       try {
+        const storedValue = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+
+        if (!storedValue) {
+          return;
+        }
+
         const nextPersistedState =
           parsePersistedAppState(storedValue) ??
           createInitialPersistedAppState();
@@ -76,9 +75,9 @@ export default function Home() {
         setTodos(initialState.todos);
         setActiveTaskId(initialState.activeTaskId);
         setTagStats(initialState.tagStats);
+      } finally {
+        setHasHydrated(true);
       }
-
-      setHasHydrated(true);
     });
   }, []);
 
@@ -87,14 +86,18 @@ export default function Home() {
       return;
     }
 
-    window.localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify({
-        todos,
-        activeTaskId: sanitizeActiveTaskId(todos, activeTaskId),
-        tagStats,
-      }),
-    );
+    try {
+      window.localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify({
+          todos,
+          activeTaskId: sanitizeActiveTaskId(todos, activeTaskId),
+          tagStats,
+        }),
+      );
+    } catch {
+      return;
+    }
   }, [activeTaskId, hasHydrated, tagStats, todos]);
 
   const handleActiveTaskAvailabilityChange = (canChangeActiveTask: boolean) => {
