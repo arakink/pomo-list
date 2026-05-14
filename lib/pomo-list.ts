@@ -91,6 +91,12 @@ export function parsePersistedAppState(
     return null;
   }
 
+  const todoIds = candidate.todos.map((todo) => todo.id);
+
+  if (new Set(todoIds).size !== todoIds.length) {
+    return null;
+  }
+
   if (
     candidate.activeTaskId !== null &&
     typeof candidate.activeTaskId !== "string"
