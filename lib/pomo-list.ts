@@ -111,6 +111,14 @@ export function parsePersistedAppState(
     return null;
   }
 
+  const normalizedTags = candidate.tagStats.map((stat) =>
+    getTagStatLabel(stat.tag),
+  );
+
+  if (new Set(normalizedTags).size !== normalizedTags.length) {
+    return null;
+  }
+
   return {
     todos: candidate.todos,
     activeTaskId: sanitizeActiveTaskId(candidate.todos, candidate.activeTaskId),
