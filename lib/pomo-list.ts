@@ -53,7 +53,9 @@ function isTagStat(value: unknown): value is TagStat {
 
   return (
     typeof candidate.tag === "string" &&
-    typeof candidate.completedCount === "number"
+    typeof candidate.completedCount === "number" &&
+    Number.isSafeInteger(candidate.completedCount) &&
+    candidate.completedCount >= 0
   );
 }
 
