@@ -42,6 +42,10 @@ ToDo の「セット」ボタンで active task をタイマーへ連携し、�
 
 `localStorage` 保存を追加する。ToDo、active task、統計など、アプリ利用の継続に必要な状態をリロード後も復元できるようにする。
 
+詳細: [feature-05-localstorage-persistence.md](./branches/feature-05-localstorage-persistence.md)
+
 ### `feature/06-polish-ui-feedback`
 
-レスポンシブ調整、通知音、見た目の仕上げを行う。機能本体と永続化の挙動が固まったあとに、UI の polish をまとめて調整する。
+機能本体と永続化の挙動が固まったあとに、UI の polish をまとめて調整する。Tag Stats の集計リセット、文言整合、空状態やボタン状態の改善、モバイル時の見やすさ改善をこの段階で扱う。
+
+詳細: [feature-06-polish-ui-feedback.md](./branches/feature-06-polish-ui-feedback.md)
