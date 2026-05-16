@@ -54,10 +54,10 @@ function getTagStatKey(tag: string) {
 
 function getTagStatsDescription(tagStats: TagStat[]) {
   if (tagStats.length === 0) {
-    return "完了した作業はタグごとに集計され、傾向をここで確認できます。";
+    return "完了した作業はタグごとに集計されます。最初の1回が記録されると、ここから傾向を確認できます。";
   }
 
-  return "Work を完了すると、現在のタスクのタグごとに回数が反映されます。";
+  return "Work を完了すると、現在のタスクのタグごとに回数が反映されます。必要になったらこの場で集計をリセットできます。";
 }
 
 type TimerPanelProps = {
@@ -65,6 +65,7 @@ type TimerPanelProps = {
   tagStats: TagStat[];
   onWorkComplete: () => void;
   onWorkSessionStart: () => void;
+  onResetTagStats: () => void;
   onActiveTaskAvailabilityChange: (canChange: boolean) => void;
   onActiveTaskClearAvailabilityChange: (canClear: boolean) => void;
 };
@@ -74,6 +75,7 @@ export function TimerPanel({
   tagStats,
   onWorkComplete,
   onWorkSessionStart,
+  onResetTagStats,
   onActiveTaskAvailabilityChange,
   onActiveTaskClearAvailabilityChange,
 }: TimerPanelProps) {
@@ -82,6 +84,7 @@ export function TimerPanel({
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
+  const [isConfirmingStatsReset, setIsConfirmingStatsReset] = useState(false);
   const [hasStartedCurrentWorkSession, setHasStartedCurrentWorkSession] =
     useState(false);
   const intervalRef = useRef<number | null>(null);
@@ -94,6 +97,7 @@ export function TimerPanel({
   const canStart = secondsLeft > 0;
   const hasCurrentTask = currentTask !== null;
   const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
+  const hasTagStats = tagStats.length > 0;
 
   const clearRunningTimer = () => {
     if (intervalRef.current !== null) {
@@ -221,6 +225,11 @@ export function TimerPanel({
     setIsRunning(false);
   };
 
+  const handleConfirmStatsReset = () => {
+    onResetTagStats();
+    setIsConfirmingStatsReset(false);
+  };
+
   const handleStartPause = () => {
     if (isRunning) {
       clearRunningTimer();
@@ -291,7 +300,7 @@ export function TimerPanel({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="grid gap-3 sm:flex sm:flex-wrap">
             <button
               type="button"
               onClick={handleStartPause}
@@ -317,7 +326,7 @@ export function TimerPanel({
           </div>
         </div>
 
-        <aside className="grid gap-4 rounded-[1.75rem] bg-slate-950 p-6 text-white md:grid-cols-2 lg:grid-cols-1">
+        <aside className="grid gap-4 rounded-[1.75rem] bg-slate-950 p-6 text-white sm:grid-cols-2 lg:grid-cols-1">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
               Current Mode
@@ -339,13 +348,13 @@ export function TimerPanel({
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+        <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 sm:p-6">
           <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             Current Task
           </h2>
           <div className="mt-3 space-y-3">
             <p
-              className={`text-2xl font-semibold tracking-[-0.04em] ${
+              className={`text-2xl font-semibold tracking-[-0.04em] sm:text-[2rem] ${
                 hasCurrentTask ? "text-slate-950" : "text-slate-400"
               }`}
             >
@@ -372,25 +381,41 @@ export function TimerPanel({
           </div>
         </section>
 
-        <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8">
-          <div className="flex items-end justify-between gap-4">
-            <div>
+        <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
               <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
                 Tag Stats
               </h2>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+              <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-[2rem]">
                 タグ別の完了回数
               </p>
             </div>
-            <p className="text-sm text-slate-500">
-              {tagStats.length > 0 ? "Live Data" : "Empty State"}
-            </p>
+            <div className="flex flex-col items-start gap-3 sm:items-end">
+              <span
+                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${
+                  hasTagStats
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "border border-dashed border-slate-300 bg-slate-50 text-slate-500"
+                }`}
+              >
+                {hasTagStats ? "Live Data" : "Empty State"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsConfirmingStatsReset(true)}
+                disabled={!hasTagStats}
+                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+              >
+                集計をリセット
+              </button>
+            </div>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             {getTagStatsDescription(tagStats)}
           </p>
 
-          {tagStats.length > 0 ? (
+          {hasTagStats ? (
             <ul className="mt-5 space-y-3">
               {tagStats.map((stat) => {
                 const normalizedTagLabel = getTagStatLabel(stat.tag);
@@ -420,6 +445,9 @@ export function TimerPanel({
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
               <p className="text-sm font-semibold text-slate-700">まだ集計はありません</p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                タスクをセットした状態で Work を完了すると、タグごとの回数がここに並びます。
+              </p>
             </div>
           )}
         </section>
@@ -456,6 +484,38 @@ export function TimerPanel({
                 type="button"
                 onClick={() => setIsConfirmingBreakMove(false)}
                 className="rounded-full px-5 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isConfirmingStatsReset ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-5">
+          <div className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
+            <p className="text-sm font-medium uppercase tracking-[0.28em] text-orange-700">
+              Tag Stats
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+              集計をリセットしますか？
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              保存済みのタグ別完了回数をすべてクリアします。ToDo 自体は削除されません。
+            </p>
+            <div className="mt-6 grid gap-3">
+              <button
+                type="button"
+                onClick={handleConfirmStatsReset}
+                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                リセットする
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsConfirmingStatsReset(false)}
+                className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
               >
                 キャンセル
               </button>
