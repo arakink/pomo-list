@@ -391,16 +391,7 @@ export function TimerPanel({
                 タグ別の完了回数
               </p>
             </div>
-            <div className="flex flex-col items-start gap-3 sm:items-end">
-              <span
-                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${
-                  hasTagStats
-                    ? "bg-emerald-100 text-emerald-800"
-                    : "border border-dashed border-slate-300 bg-slate-50 text-slate-500"
-                }`}
-              >
-                {hasTagStats ? "Live Data" : "Empty State"}
-              </span>
+            <div className="flex items-start sm:items-end">
               <button
                 type="button"
                 onClick={() => setIsConfirmingStatsReset(true)}
