@@ -231,7 +231,7 @@ export function TodoPanel({
             </h2>
             <p className="max-w-md text-sm leading-6 text-slate-600">
               このブランチでは ToDo の登録、タグ付け、完了切替に加えて、
-              アクティブタスクとしてタイマーへセットする操作までを扱います。保存はまだ行いません。
+              アクティブタスクとしてタイマーへセットする操作までを扱います。追加したタスクとタグ集計はこの端末に保存されます。
             </p>
             <p className="max-w-md text-sm leading-6 text-slate-600">
               Work 開始後はタスクを固定し、切り替えは Break に移ってから行います。
