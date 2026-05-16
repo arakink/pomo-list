@@ -48,6 +48,14 @@ function getCurrentTaskDescription(currentTask: CurrentTask | null) {
   return "未完了タスクからセットした内容が表示されています。Work 完了時にこのタグへ回数が加算されます。";
 }
 
+function getCurrentTaskActionDescription(canClearActiveTask: boolean) {
+  if (canClearActiveTask) {
+    return "必要に応じて、ここから現在のタスク設定を解除できます。";
+  }
+
+  return "Work の進行中はタスクを固定しています。解除は Break に移ってから行えます。";
+}
+
 function getTagStatKey(tag: string) {
   return getTagStatLabel(tag);
 }
@@ -63,21 +71,25 @@ function getTagStatsDescription(tagStats: TagStat[]) {
 type TimerPanelProps = {
   currentTask: CurrentTask | null;
   tagStats: TagStat[];
+  canClearActiveTask: boolean;
   onWorkComplete: () => void;
   onWorkSessionStart: () => void;
   onResetTagStats: () => void;
   onActiveTaskAvailabilityChange: (canChange: boolean) => void;
   onActiveTaskClearAvailabilityChange: (canClear: boolean) => void;
+  onClearActiveTask: () => void;
 };
 
 export function TimerPanel({
   currentTask,
   tagStats,
+  canClearActiveTask,
   onWorkComplete,
   onWorkSessionStart,
   onResetTagStats,
   onActiveTaskAvailabilityChange,
   onActiveTaskClearAvailabilityChange,
+  onClearActiveTask,
 }: TimerPanelProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
@@ -378,6 +390,21 @@ export function TimerPanel({
             <p className="text-sm leading-6 text-slate-600">
               {getCurrentTaskDescription(currentTask)}
             </p>
+            {hasCurrentTask ? (
+              <div className="space-y-3 pt-1">
+                <button
+                  type="button"
+                  onClick={onClearActiveTask}
+                  disabled={!canClearActiveTask}
+                  className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  セットを解除
+                </button>
+                <p className="text-xs leading-5 text-slate-500">
+                  {getCurrentTaskActionDescription(canClearActiveTask)}
+                </p>
+              </div>
+            ) : null}
           </div>
         </section>
 

@@ -229,11 +229,13 @@ export default function Home() {
         <TimerPanel
           currentTask={currentTask}
           tagStats={tagStats}
+          canClearActiveTask={canClearActiveTask}
           onWorkComplete={handleWorkComplete}
           onWorkSessionStart={handleWorkSessionStart}
           onResetTagStats={handleResetTagStats}
           onActiveTaskAvailabilityChange={handleActiveTaskAvailabilityChange}
           onActiveTaskClearAvailabilityChange={setCanClearActiveTask}
+          onClearActiveTask={handleClearActiveTask}
         />
         <TodoPanel
           todos={todos}
