@@ -386,22 +386,26 @@ export function TimerPanel({
                 </span>
               )
             ) : (
-              <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-                未設定
-              </span>
+              <div className="space-y-3">
+                <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
+                  未設定
+                </span>
+                <div>
+                  <Button
+                    onClick={onBrowseIncompleteTodos}
+                    variant="secondary"
+                    className="rounded-2xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                  >
+                    未完了タスクから選ぶ
+                  </Button>
+                </div>
+              </div>
             )}
             <p className="text-sm leading-6 text-slate-600">
-              {getCurrentTaskDescription(currentTask)}
+              {hasCurrentTask
+                ? getCurrentTaskDescription(currentTask)
+                : "未完了タスクから選ぶと、ここに現在のタスクが表示されます。"}
             </p>
-            {!hasCurrentTask ? (
-              <Button
-                onClick={onBrowseIncompleteTodos}
-                variant="secondary"
-                className="rounded-2xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-              >
-                未完了タスクから選ぶ
-              </Button>
-            ) : null}
             {hasCurrentTask ? (
               <div className="space-y-3 pt-1">
                 <button
