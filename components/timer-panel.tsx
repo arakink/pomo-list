@@ -46,7 +46,7 @@ function getCurrentTaskDescription(currentTask: CurrentTask | null) {
     return "このタスクにはタグがありません。完了回数は「タグなし」として集計されます。";
   }
 
-  return "未完了タスクからセットした内容が表示されています。Work 完了時にこのタグへ回数が加算されます。";
+  return "現在取り組むタスクです。\nWork完了時に、タグ別の完了回数に反映されます。";
 }
 
 function getCurrentTaskActionDescription(canClearActiveTask: boolean) {
@@ -367,7 +367,7 @@ export function TimerPanel({
           <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             Current Task
           </h2>
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-5">
             <p
               className={`text-2xl font-semibold tracking-[-0.04em] sm:text-[2rem] ${
                 hasCurrentTask ? "text-slate-950" : "text-slate-400"
@@ -386,25 +386,22 @@ export function TimerPanel({
                 </span>
               )
             ) : (
-              <div className="space-y-3">
-                <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-                  未設定
-                </span>
+              <div className="space-y-5">
                 <div>
                   <Button
                     onClick={onBrowseIncompleteTodos}
-                    variant="secondary"
-                    className="rounded-2xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                    variant="default"
+                    className="h-11 rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(16,185,129,0.18)] hover:bg-emerald-700"
                   >
-                    未完了タスクから選ぶ
+                    タスクを選ぶ
                   </Button>
                 </div>
               </div>
             )}
-            <p className="text-sm leading-6 text-slate-600">
+            <p className="text-sm leading-6 whitespace-pre-line text-slate-600">
               {hasCurrentTask
                 ? getCurrentTaskDescription(currentTask)
-                : "未完了タスクから選ぶと、ここに現在のタスクが表示されます。"}
+                : "選択したタスクがここに表示されます。"}
             </p>
             {hasCurrentTask ? (
               <div className="space-y-3 pt-1">
