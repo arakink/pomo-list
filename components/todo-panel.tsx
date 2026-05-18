@@ -167,16 +167,15 @@ export function TodoPanel({
               今日のタスクを追加して、状態ごとに整理する。
             </h2>
             <p className="max-w-md text-sm leading-6 text-slate-600">
-              このブランチでは ToDo の登録、タグ付け、完了切替に加えて、
-              アクティブタスクとしてタイマーへセットする操作までを扱います。追加したタスクとタグ集計はこの端末に保存されます。
+              今日のタスクを登録して整理できます。
             </p>
             <p className="max-w-md text-sm leading-6 text-slate-600">
-              Work 開始後はタスクを固定し、切り替えは Break に移ってから行います。
+              タスクとタグ集計はこの端末に保存されます。
             </p>
           </div>
 
           <form
-            className="space-y-4 rounded-[1.75rem] bg-[linear-gradient(180deg,#ecfeff_0%,#f8fafc_100%)] p-5 ring-1 ring-slate-900/5"
+            className="space-y-4 rounded-[1.75rem] bg-[linear-gradient(180deg,#f7fffb_0%,#f8fafc_100%)] p-5 ring-1 ring-emerald-100/80 shadow-[0_16px_36px_rgba(16,185,129,0.08)]"
             onSubmit={handleSubmit}
           >
             <div className="space-y-2">
@@ -186,13 +185,13 @@ export function TodoPanel({
               >
                 タスク名
               </label>
-              <input
+              <Input
                 id="todo-title"
                 type="text"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="例: 企画書の構成をまとめる"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                className="h-12 rounded-2xl border-slate-200 bg-white/95 px-4 shadow-none transition focus-visible:border-emerald-500 focus-visible:ring-4 focus-visible:ring-emerald-500/10"
               />
             </div>
 
@@ -203,23 +202,23 @@ export function TodoPanel({
               >
                 タグ
               </label>
-              <input
+              <Input
                 id="todo-tag"
                 type="text"
                 value={tag}
                 onChange={(event) => setTag(event.target.value)}
                 placeholder="例: 仕事"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                className="h-12 rounded-2xl border-slate-200 bg-white/95 px-4 shadow-none transition focus-visible:border-emerald-500 focus-visible:ring-4 focus-visible:ring-emerald-500/10"
               />
             </div>
 
-            <button
-              type="submit"
+            <Button
               disabled={!title.trim()}
-              className="w-full rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
+              type="submit"
+              className="h-12 w-full rounded-2xl bg-emerald-600 text-sm font-semibold shadow-[0_14px_30px_rgba(16,185,129,0.22)] hover:bg-emerald-700"
             >
               追加
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -317,8 +316,8 @@ function TodoColumn({
 }: TodoColumnProps) {
   const panelClassName =
     tone === "emerald"
-      ? "border border-emerald-200 bg-[linear-gradient(180deg,#f3fbf6_0%,#e8f7ee_100%)] text-slate-950"
-      : "border border-slate-200 bg-slate-50 text-slate-950";
+      ? "bg-[linear-gradient(180deg,#f8fdf9_0%,#f2fbf5_100%)] text-slate-950 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.08)]"
+      : "bg-slate-50/70 text-slate-950 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.10)]";
   const eyebrowClassName =
     tone === "emerald" ? "text-emerald-700" : "text-slate-500";
   const countClassName =
@@ -336,10 +335,6 @@ function TodoColumn({
     tone === "emerald"
       ? "border-emerald-100 bg-white shadow-[0_10px_28px_rgba(16,185,129,0.08)]"
       : "bg-white";
-  const actionAreaClassName =
-    tone === "emerald"
-      ? "border-emerald-100 bg-emerald-50/70"
-      : "border-slate-200 bg-slate-50";
   const primaryButtonVariant = "default";
   const secondaryButtonVariant = "secondary";
   const actionButtonClassName =
@@ -352,6 +347,8 @@ function TodoColumn({
     tone === "emerald"
       ? "border-emerald-200 bg-white text-emerald-900 hover:border-emerald-300 hover:bg-emerald-50"
       : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50";
+  const menuButtonClassName =
+    "inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-600";
 
   return (
     <section className={`rounded-[1.75rem] p-5 ${panelClassName}`}>
@@ -373,7 +370,7 @@ function TodoColumn({
               <Card className={cn("overflow-hidden rounded-2xl transition", todoCardClassName)}>
                 {editing.todoId === todo.id ? (
                   <>
-                    <CardHeader>
+                    <CardHeader className="pb-3">
                       <CardTitle className={titleClassName}>タスクを編集</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -407,9 +404,9 @@ function TodoColumn({
                   </>
                 ) : (
                   <>
-                    <CardHeader className="space-y-3">
+                    <CardHeader className="space-y-4 pb-4">
                       <div className="relative flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 space-y-2">
+                        <div className="min-w-0 flex-1 space-y-3">
                           <CardTitle className={cn("leading-6", titleClassName)}>
                             {todo.title}
                           </CardTitle>
@@ -444,7 +441,7 @@ function TodoColumn({
                             type="button"
                             onClick={() => onToggleMenu(todo.id)}
                             aria-label="タスクメニューを開く"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+                            className={menuButtonClassName}
                           >
                             ⋯
                           </button>
@@ -501,12 +498,7 @@ function TodoColumn({
                 )}
 
                 <CardFooter className="pt-0">
-                  <div
-                    className={cn(
-                      "w-full rounded-xl border p-2.5",
-                      actionAreaClassName,
-                    )}
-                  >
+                  <div className="w-full">
                     <Button
                       onClick={() => onToggleTodoCompletion(todo)}
                       variant={primaryButtonVariant}

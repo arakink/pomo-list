@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { CurrentTask, TagStat, getTagStatLabel } from "@/lib/pomo-list";
 
 const WORK_DURATION_SECONDS = 25 * 60;
@@ -419,14 +420,14 @@ export function TimerPanel({
               </p>
             </div>
             <div className="flex items-start sm:items-end">
-              <button
-                type="button"
+              <Button
                 onClick={() => setIsConfirmingStatsReset(true)}
                 disabled={!hasTagStats}
-                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                variant="destructive"
+                className="h-auto rounded-2xl border-rose-100 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-none hover:border-rose-200 hover:bg-rose-100 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
               >
                 集計をリセット
-              </button>
+              </Button>
             </div>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
