@@ -210,6 +210,16 @@ export default function Home() {
     setTagStats([]);
   }, []);
 
+  const handleBrowseIncompleteTodos = useCallback(() => {
+    const todoSection = document.getElementById("todo-panel");
+
+    if (!todoSection) {
+      return;
+    }
+
+    todoSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   return (
     <main className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#fff7ed_0%,#f8fafc_38%,#eef2ff_100%)] px-5 py-8 text-slate-950 sm:px-8 lg:px-12 lg:py-12">
       <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8">
@@ -229,6 +239,7 @@ export default function Home() {
           currentTask={currentTask}
           tagStats={tagStats}
           canClearActiveTask={canClearActiveTask}
+          onBrowseIncompleteTodos={handleBrowseIncompleteTodos}
           onWorkComplete={handleWorkComplete}
           onWorkSessionStart={handleWorkSessionStart}
           onResetTagStats={handleResetTagStats}

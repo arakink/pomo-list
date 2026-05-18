@@ -73,6 +73,7 @@ type TimerPanelProps = {
   currentTask: CurrentTask | null;
   tagStats: TagStat[];
   canClearActiveTask: boolean;
+  onBrowseIncompleteTodos: () => void;
   onWorkComplete: () => void;
   onWorkSessionStart: () => void;
   onResetTagStats: () => void;
@@ -85,6 +86,7 @@ export function TimerPanel({
   currentTask,
   tagStats,
   canClearActiveTask,
+  onBrowseIncompleteTodos,
   onWorkComplete,
   onWorkSessionStart,
   onResetTagStats,
@@ -391,6 +393,15 @@ export function TimerPanel({
             <p className="text-sm leading-6 text-slate-600">
               {getCurrentTaskDescription(currentTask)}
             </p>
+            {!hasCurrentTask ? (
+              <Button
+                onClick={onBrowseIncompleteTodos}
+                variant="secondary"
+                className="rounded-2xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+              >
+                未完了タスクから選ぶ
+              </Button>
+            ) : null}
             {hasCurrentTask ? (
               <div className="space-y-3 pt-1">
                 <button

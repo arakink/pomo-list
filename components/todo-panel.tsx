@@ -184,7 +184,10 @@ export function TodoPanel({
   }, [openMenuTodoId]);
 
   return (
-    <section className="mx-auto w-full max-w-4xl rounded-[2rem] border border-slate-900/10 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10">
+    <section
+      id="todo-panel"
+      className="mx-auto w-full max-w-4xl rounded-[2rem] border border-slate-900/10 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10"
+    >
       <div className="grid gap-8 lg:grid-cols-[0.88fr_1.12fr]">
         <div className="space-y-6">
           <div className="space-y-3">
