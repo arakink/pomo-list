@@ -16,17 +16,6 @@ import { Todo } from "@/lib/pomo-list";
 import { cn } from "@/lib/utils";
 
 type ColumnType = "incomplete" | "completed";
-type SelectionMode = "toggleStatus" | "delete" | null;
-type TodoColumnSelection = {
-  mode: SelectionMode;
-  column: ColumnType | null;
-  selectedTodoIds: string[];
-  onStartToggleStatus: () => void;
-  onStartDelete: () => void;
-  onConfirm: () => void;
-  onCancel: () => void;
-  onSelect: (id: string) => void;
-};
 type TodoColumnEditing = {
   todoId: string | null;
   title: string;
@@ -40,30 +29,6 @@ type TodoColumnEditing = {
 
 function getPrimaryActionLabel(columnType: ColumnType) {
   return columnType === "incomplete" ? "完了にする" : "未完了へ戻す";
-}
-
-function getConfirmActionLabel(
-  mode: SelectionMode,
-  columnType: ColumnType,
-) {
-  if (mode === "delete") {
-    return "削除を実行";
-  }
-
-  return getPrimaryActionLabel(columnType);
-}
-
-function getSelectionDescription(
-  mode: SelectionMode,
-  columnType: ColumnType,
-) {
-  if (mode === "delete") {
-    return "対象のタスクを選んで削除します。";
-  }
-
-  return columnType === "incomplete"
-    ? "完了にしたいタスクを選んでください。"
-    : "未完了へ戻したいタスクを選んでください。";
 }
 
 function createTodoId() {
@@ -97,12 +62,10 @@ export function TodoPanel({
 }: TodoPanelProps) {
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("");
-  const [selectedTodoIds, setSelectedTodoIds] = useState<string[]>([]);
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>(null);
-  const [selectionColumn, setSelectionColumn] = useState<ColumnType | null>(null);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingTag, setEditingTag] = useState("");
+  const [openMenuTodoId, setOpenMenuTodoId] = useState<string | null>(null);
 
   const incompleteTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
@@ -127,35 +90,8 @@ export function TodoPanel({
     setTag("");
   };
 
-  const toggleTodoSelected = (id: string) => {
-    setSelectedTodoIds((currentIds) =>
-      currentIds.includes(id)
-        ? currentIds.filter((currentId) => currentId !== id)
-        : [...currentIds, id],
-    );
-  };
-
-  const startSelection = (
-    mode: Exclude<SelectionMode, null>,
-    column: ColumnType,
-  ) => {
-    setSelectionMode(mode);
-    setSelectionColumn(column);
-    setSelectedTodoIds([]);
-  };
-
-  const cancelSelection = () => {
-    setSelectionMode(null);
-    setSelectionColumn(null);
-    setSelectedTodoIds([]);
-  };
-
-  const moveSelectedTodos = (completed: boolean) => {
-    onUpdateTodoCompletion(selectedTodoIds, completed);
-    cancelSelection();
-  };
-
   const startEditingTodo = (todo: Todo) => {
+    setOpenMenuTodoId(null);
     setEditingTodoId(todo.id);
     setEditingTitle(todo.title);
     setEditingTag(todo.tag);
@@ -190,33 +126,23 @@ export function TodoPanel({
     cancelEditingTodo();
   };
 
-  const deleteSelectedTodos = () => {
-    onDeleteTodos(selectedTodoIds);
+  const handleToggleTodoCompletion = (todo: Todo) => {
+    onUpdateTodoCompletion([todo.id], !todo.completed);
+    setOpenMenuTodoId(null);
 
-    if (editingTodoId !== null && selectedTodoIds.includes(editingTodoId)) {
+    if (editingTodoId === todo.id) {
       cancelEditingTodo();
     }
-
-    cancelSelection();
   };
 
-  const createSelection = (column: ColumnType): TodoColumnSelection => ({
-    mode: selectionMode,
-    column: selectionColumn,
-    selectedTodoIds,
-    onStartToggleStatus: () => startSelection("toggleStatus", column),
-    onStartDelete: () => startSelection("delete", column),
-    onConfirm: () => {
-      if (selectionMode === "delete") {
-        deleteSelectedTodos();
-        return;
-      }
+  const handleDeleteTodo = (todoId: string) => {
+    onDeleteTodos([todoId]);
+    setOpenMenuTodoId(null);
 
-      moveSelectedTodos(column === "incomplete");
-    },
-    onCancel: cancelSelection,
-    onSelect: toggleTodoSelected,
-  });
+    if (editingTodoId === todoId) {
+      cancelEditingTodo();
+    }
+  };
 
   const editing: TodoColumnEditing = {
     todoId: editingTodoId,
@@ -304,7 +230,6 @@ export function TodoPanel({
             emptyMessage="まだタスクはありません。追加するとここに表示されます。"
             todos={incompleteTodos}
             columnType="incomplete"
-            selection={createSelection("incomplete")}
             editing={editing}
             tone="slate"
             activeTaskId={activeTaskId}
@@ -312,6 +237,15 @@ export function TodoPanel({
             canClearActiveTask={canClearActiveTask}
             onSetActiveTask={onSetActiveTask}
             onClearActiveTask={onClearActiveTask}
+            onToggleTodoCompletion={handleToggleTodoCompletion}
+            onDeleteTodo={handleDeleteTodo}
+            openMenuTodoId={openMenuTodoId}
+            onToggleMenu={(todoId) =>
+              setOpenMenuTodoId((currentId) =>
+                currentId === todoId ? null : todoId,
+              )
+            }
+            onCloseMenu={() => setOpenMenuTodoId(null)}
           />
           <TodoColumn
             title="完了済み"
@@ -319,7 +253,6 @@ export function TodoPanel({
             emptyMessage="完了したタスクはまだありません。"
             todos={completedTodos}
             columnType="completed"
-            selection={createSelection("completed")}
             editing={editing}
             tone="emerald"
             activeTaskId={activeTaskId}
@@ -327,6 +260,15 @@ export function TodoPanel({
             canClearActiveTask={canClearActiveTask}
             onSetActiveTask={onSetActiveTask}
             onClearActiveTask={onClearActiveTask}
+            onToggleTodoCompletion={handleToggleTodoCompletion}
+            onDeleteTodo={handleDeleteTodo}
+            openMenuTodoId={openMenuTodoId}
+            onToggleMenu={(todoId) =>
+              setOpenMenuTodoId((currentId) =>
+                currentId === todoId ? null : todoId,
+              )
+            }
+            onCloseMenu={() => setOpenMenuTodoId(null)}
           />
         </div>
       </div>
@@ -340,7 +282,6 @@ type TodoColumnProps = {
   emptyMessage: string;
   todos: Todo[];
   columnType: ColumnType;
-  selection: TodoColumnSelection;
   editing: TodoColumnEditing;
   tone: "slate" | "emerald";
   activeTaskId: string | null;
@@ -348,6 +289,11 @@ type TodoColumnProps = {
   canClearActiveTask: boolean;
   onSetActiveTask: (todoId: string) => void;
   onClearActiveTask: () => void;
+  onToggleTodoCompletion: (todo: Todo) => void;
+  onDeleteTodo: (todoId: string) => void;
+  openMenuTodoId: string | null;
+  onToggleMenu: (todoId: string) => void;
+  onCloseMenu: () => void;
 };
 
 function TodoColumn({
@@ -356,7 +302,6 @@ function TodoColumn({
   emptyMessage,
   todos,
   columnType,
-  selection,
   editing,
   tone,
   activeTaskId,
@@ -364,6 +309,11 @@ function TodoColumn({
   canClearActiveTask,
   onSetActiveTask,
   onClearActiveTask,
+  onToggleTodoCompletion,
+  onDeleteTodo,
+  openMenuTodoId,
+  onToggleMenu,
+  onCloseMenu,
 }: TodoColumnProps) {
   const panelClassName =
     tone === "emerald"
@@ -380,25 +330,8 @@ function TodoColumn({
     tone === "emerald"
       ? "border-emerald-200 bg-white text-slate-950 placeholder:text-slate-400 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/10"
       : "";
-  const checkboxClassName =
-    tone === "emerald"
-      ? "border-emerald-300 bg-white text-emerald-700 accent-emerald-600"
-      : "border-slate-300 bg-white text-emerald-700 accent-emerald-600";
-  const hasSelection = todos.some((todo) =>
-    selection.selectedTodoIds.includes(todo.id),
-  );
-  const isSelectingInThisColumn = selection.column === columnType;
   const primaryActionLabel = getPrimaryActionLabel(columnType);
-  const confirmActionLabel = getConfirmActionLabel(selection.mode, columnType);
-  const selectionDescription = getSelectionDescription(
-    selection.mode,
-    columnType,
-  );
-  const canSetTask = columnType === "incomplete" && !isSelectingInThisColumn;
-  const selectionCardClassName =
-    tone === "emerald"
-      ? "border-emerald-200 bg-white text-slate-700"
-      : "bg-white";
+  const canSetTask = columnType === "incomplete";
   const todoCardClassName =
     tone === "emerald"
       ? "border-emerald-100 bg-white shadow-[0_10px_28px_rgba(16,185,129,0.08)]"
@@ -409,9 +342,8 @@ function TodoColumn({
       : "border-slate-200 bg-slate-50";
   const primaryButtonVariant = "default";
   const secondaryButtonVariant = "secondary";
-  const destructiveButtonVariant = "destructive";
   const actionButtonClassName =
-    "h-auto min-h-11 whitespace-normal px-4 py-3 text-center leading-[1.2] shadow-none";
+    "h-auto min-h-11 whitespace-normal px-4 py-3 text-center leading-[1.25] shadow-none";
   const primaryButtonClassName =
     tone === "emerald"
       ? "border-emerald-600 bg-emerald-600 text-white hover:border-emerald-700 hover:bg-emerald-700"
@@ -434,89 +366,11 @@ function TodoColumn({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-2">
-        {isSelectingInThisColumn ? (
-          <>
-            <Card className={selectionCardClassName}>
-              <CardContent className="p-4">
-                <p className={cn("text-sm leading-6", eyebrowClassName)}>
-                  {selectionDescription}
-                </p>
-              </CardContent>
-            </Card>
-            <Button
-              onClick={selection.onConfirm}
-              disabled={!hasSelection}
-              variant={
-                selection.mode === "delete"
-                  ? destructiveButtonVariant
-                  : primaryButtonVariant
-              }
-              className={cn("w-full rounded-2xl", actionButtonClassName, selection.mode !== "delete" && primaryButtonClassName)}
-            >
-              {confirmActionLabel}
-            </Button>
-            <Button
-              onClick={selection.onCancel}
-              variant={secondaryButtonVariant}
-              className={cn("w-full rounded-2xl", actionButtonClassName, secondaryButtonClassName)}
-            >
-              キャンセル
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              onClick={selection.onStartToggleStatus}
-              variant={primaryButtonVariant}
-              className={cn("w-full rounded-2xl", actionButtonClassName, primaryButtonClassName)}
-            >
-              {primaryActionLabel}
-            </Button>
-            <Button
-              onClick={selection.onStartDelete}
-              variant={destructiveButtonVariant}
-              className={cn("w-full rounded-2xl", actionButtonClassName)}
-            >
-              削除
-            </Button>
-          </>
-        )}
-      </div>
-
       {todos.length > 0 ? (
         <ul className="mt-5 space-y-3">
           {todos.map((todo) => (
             <li key={todo.id}>
               <Card className={cn("overflow-hidden rounded-2xl transition", todoCardClassName)}>
-                {isSelectingInThisColumn ? (
-                  <CardHeader className="pb-0">
-                    <label
-                      className={cn(
-                        "flex items-center gap-3 rounded-xl border px-3 py-2.5",
-                        tone === "emerald"
-                          ? "border-white/10 bg-white/6"
-                          : "border-slate-200 bg-slate-50",
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selection.selectedTodoIds.includes(todo.id)}
-                          onChange={() => selection.onSelect(todo.id)}
-                          aria-label={`「${todo.title}」を選択`}
-                          className={`h-4 w-4 rounded border ${checkboxClassName}`}
-                        />
-                        <span
-                          className={`text-xs font-semibold uppercase tracking-[0.18em] ${eyebrowClassName}`}
-                        >
-                          選択
-                        </span>
-                      </div>
-                    </label>
-                  </CardHeader>
-                ) : null}
-
                 {editing.todoId === todo.id ? (
                   <>
                     <CardHeader>
@@ -554,7 +408,28 @@ function TodoColumn({
                 ) : (
                   <>
                     <CardHeader className="space-y-3">
-                      <div className="flex flex-wrap items-center justify-end gap-2">
+                      <div className="relative flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <CardTitle className={cn("leading-6", titleClassName)}>
+                            {todo.title}
+                          </CardTitle>
+                          {todo.tag ? (
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "w-fit",
+                                tone === "emerald"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-emerald-50 text-emerald-800",
+                              )}
+                            >
+                              {todo.tag}
+                            </Badge>
+                          ) : (
+                            <p className={`text-xs font-medium ${emptyClassName}`}>タグなし</p>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
                         {activeTaskId === todo.id ? (
                           <Badge
                             className={cn(
@@ -565,26 +440,61 @@ function TodoColumn({
                             Current Focus
                           </Badge>
                         ) : null}
-                      </div>
-                      <div className="space-y-2">
-                        <CardTitle className={cn("leading-6", titleClassName)}>
-                          {todo.title}
-                        </CardTitle>
-                        {todo.tag ? (
-                          <Badge
-                            variant="secondary"
-                            className={cn(
-                              "w-fit",
-                              tone === "emerald"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-emerald-50 text-emerald-800",
-                            )}
+                          <button
+                            type="button"
+                            onClick={() => onToggleMenu(todo.id)}
+                            aria-label="タスクメニューを開く"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
                           >
-                            {todo.tag}
-                          </Badge>
-                        ) : (
-                          <p className={`text-xs font-medium ${emptyClassName}`}>タグなし</p>
-                        )}
+                            ⋯
+                          </button>
+                        </div>
+                        {openMenuTodoId === todo.id ? (
+                          <div className="absolute top-11 right-0 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_18px_32px_rgba(15,23,42,0.12)]">
+                            {canSetTask ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (activeTaskId === todo.id && canClearActiveTask) {
+                                    onClearActiveTask();
+                                  } else {
+                                    onSetActiveTask(todo.id);
+                                  }
+                                  onCloseMenu();
+                                }}
+                                disabled={
+                                  activeTaskId === todo.id
+                                    ? !canClearActiveTask
+                                    : !canSetActiveTask
+                                }
+                                className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                              >
+                                {activeTaskId === todo.id
+                                  ? canClearActiveTask
+                                    ? "セットを解除"
+                                    : "セット中"
+                                  : "タスクをセット"}
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                editing.onStart(todo);
+                                onCloseMenu();
+                              }}
+                              className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                            >
+                              編集
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onDeleteTodo(todo.id)}
+                              className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-rose-700 transition hover:bg-rose-50"
+                            >
+                              削除
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     </CardHeader>
                   </>
@@ -593,64 +503,44 @@ function TodoColumn({
                 <CardFooter className="pt-0">
                   <div
                     className={cn(
-                      "grid w-full gap-2 rounded-xl border p-2.5",
+                      "w-full rounded-xl border p-2.5",
                       actionAreaClassName,
-                      canSetTask ? "sm:grid-cols-3" : "sm:grid-cols-2",
                     )}
                   >
-                    {canSetTask ? (
-                      <Button
-                        onClick={() =>
-                          activeTaskId === todo.id && canClearActiveTask
-                            ? onClearActiveTask()
-                            : onSetActiveTask(todo.id)
-                        }
-                        disabled={
-                          activeTaskId === todo.id
-                            ? !canClearActiveTask
-                            : !canSetActiveTask
-                        }
-                        variant={activeTaskId === todo.id ? primaryButtonVariant : secondaryButtonVariant}
-                        className={cn(
-                          "w-full rounded-2xl",
-                          actionButtonClassName,
-                          activeTaskId === todo.id
-                            ? primaryButtonClassName
-                            : secondaryButtonClassName,
-                        )}
-                      >
-                        {activeTaskId === todo.id
-                          ? canClearActiveTask
-                            ? "解除"
-                            : "セット中"
-                          : canSetActiveTask
-                            ? "セット"
-                            : "Break後にセット"}
-                      </Button>
-                    ) : null}
+                    <Button
+                      onClick={() => onToggleTodoCompletion(todo)}
+                      variant={primaryButtonVariant}
+                      className={cn(
+                        "w-full rounded-2xl",
+                        actionButtonClassName,
+                        primaryButtonClassName,
+                      )}
+                    >
+                      {primaryActionLabel}
+                    </Button>
                     {editing.todoId === todo.id ? (
                       <Button
                         onClick={() => editing.onSave(todo.id)}
                         disabled={!editing.title.trim()}
-                        variant={primaryButtonVariant}
-                        className={cn("w-full rounded-2xl", actionButtonClassName, primaryButtonClassName)}
+                        variant={secondaryButtonVariant}
+                        className={cn(
+                          "mt-2 w-full rounded-2xl",
+                          actionButtonClassName,
+                          secondaryButtonClassName,
+                        )}
                       >
                         保存
                       </Button>
-                    ) : (
-                      <Button
-                        onClick={() => editing.onStart(todo)}
-                        variant={secondaryButtonVariant}
-                        className={cn("w-full rounded-2xl", actionButtonClassName, secondaryButtonClassName)}
-                      >
-                        編集
-                      </Button>
-                    )}
+                    ) : null}
                     {editing.todoId === todo.id ? (
                       <Button
                         onClick={editing.onCancel}
                         variant={secondaryButtonVariant}
-                        className={cn("w-full rounded-2xl", actionButtonClassName, secondaryButtonClassName)}
+                        className={cn(
+                          "mt-2 w-full rounded-2xl",
+                          actionButtonClassName,
+                          secondaryButtonClassName,
+                        )}
                       >
                         キャンセル
                       </Button>
