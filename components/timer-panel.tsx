@@ -410,25 +410,13 @@ export function TimerPanel({
         </section>
 
         <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8 sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-2">
-              <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
-                Tag Stats
-              </h2>
-              <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-[2rem]">
-                タグ別の完了回数
-              </p>
-            </div>
-            <div className="flex items-start sm:items-end">
-              <Button
-                onClick={() => setIsConfirmingStatsReset(true)}
-                disabled={!hasTagStats}
-                variant="destructive"
-                className="h-auto rounded-2xl border-rose-100 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-none hover:border-rose-200 hover:bg-rose-100 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
-              >
-                集計をリセット
-              </Button>
-            </div>
+          <div className="space-y-2">
+            <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+              Tag Stats
+            </h2>
+            <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-[2rem]">
+              タグ別の完了回数
+            </p>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             {getTagStatsDescription(tagStats)}
@@ -442,7 +430,7 @@ export function TimerPanel({
                 return (
                   <li
                     key={getTagStatKey(stat.tag)}
-                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+                    className="flex items-center justify-between border-t border-slate-200 px-1 py-4 first:border-t-0 first:pt-0 last:pb-0"
                   >
                     <div className="flex items-center gap-3">
                       <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
@@ -469,6 +457,17 @@ export function TimerPanel({
               </p>
             </div>
           )}
+
+          <div className="mt-6 flex justify-end border-t border-slate-200 pt-4">
+            <Button
+              onClick={() => setIsConfirmingStatsReset(true)}
+              disabled={!hasTagStats}
+              variant="ghost"
+              className="h-auto rounded-xl px-2 py-1.5 text-sm font-medium text-slate-500 shadow-none hover:bg-slate-100 hover:text-rose-600 disabled:bg-transparent disabled:text-slate-300"
+            >
+              完了回数をリセット
+            </Button>
+          </div>
         </section>
       </div>
 
