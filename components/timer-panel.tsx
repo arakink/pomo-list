@@ -267,7 +267,7 @@ export function TimerPanel({
   };
 
   return (
-    <section className="w-full max-w-4xl rounded-[2rem] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10">
+    <section className="mx-auto w-full max-w-4xl rounded-[2rem] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10">
       <div className="grid gap-8 lg:grid-cols-[1.45fr_0.85fr] lg:items-center">
         <div className="space-y-8">
           <div className="space-y-4">
