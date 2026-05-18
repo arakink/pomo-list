@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -155,6 +155,33 @@ export function TodoPanel({
     onTitleChange: setEditingTitle,
     onTagChange: setEditingTag,
   };
+
+  useEffect(() => {
+    if (openMenuTodoId === null) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+
+      if (!(target instanceof HTMLElement)) {
+        setOpenMenuTodoId(null);
+        return;
+      }
+
+      if (target.closest('[data-todo-menu-root="true"]')) {
+        return;
+      }
+
+      setOpenMenuTodoId(null);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [openMenuTodoId]);
 
   return (
     <section className="mx-auto w-full max-w-4xl rounded-[2rem] border border-slate-900/10 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10">
@@ -396,7 +423,7 @@ function TodoColumn({
         <ul className="mt-5 space-y-3">
           {todos.map((todo) => (
             <li key={todo.id}>
-              <Card className={cn("overflow-hidden rounded-2xl transition", todoCardClassName)}>
+              <Card className={cn("overflow-visible rounded-2xl transition", todoCardClassName)}>
                 {editing.todoId === todo.id ? (
                   <>
                     <CardHeader className="pb-3">
@@ -434,7 +461,10 @@ function TodoColumn({
                 ) : (
                   <>
                     <CardHeader className="space-y-4 pb-4">
-                      <div className="relative flex items-start justify-between gap-3">
+                      <div
+                        className="relative flex items-start justify-between gap-3"
+                        data-todo-menu-root="true"
+                      >
                         <div className="min-w-0 flex-1 space-y-3">
                           <CardTitle className={cn("leading-6", titleClassName)}>
                             {todo.title}
