@@ -66,6 +66,7 @@ export function TodoPanel({
   const [editingTitle, setEditingTitle] = useState("");
   const [editingTag, setEditingTag] = useState("");
   const [openMenuTodoId, setOpenMenuTodoId] = useState<string | null>(null);
+  const [isCompletedExpanded, setIsCompletedExpanded] = useState(false);
 
   const incompleteTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
@@ -222,7 +223,7 @@ export function TodoPanel({
           </form>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="space-y-4">
           <TodoColumn
             title="未完了"
             count={incompleteTodos.length}
@@ -246,29 +247,57 @@ export function TodoPanel({
             }
             onCloseMenu={() => setOpenMenuTodoId(null)}
           />
-          <TodoColumn
-            title="完了済み"
-            count={completedTodos.length}
-            emptyMessage="完了したタスクはまだありません。"
-            todos={completedTodos}
-            columnType="completed"
-            editing={editing}
-            tone="emerald"
-            activeTaskId={activeTaskId}
-            canSetActiveTask={canSetActiveTask}
-            canClearActiveTask={canClearActiveTask}
-            onSetActiveTask={onSetActiveTask}
-            onClearActiveTask={onClearActiveTask}
-            onToggleTodoCompletion={handleToggleTodoCompletion}
-            onDeleteTodo={handleDeleteTodo}
-            openMenuTodoId={openMenuTodoId}
-            onToggleMenu={(todoId) =>
-              setOpenMenuTodoId((currentId) =>
-                currentId === todoId ? null : todoId,
-              )
-            }
-            onCloseMenu={() => setOpenMenuTodoId(null)}
-          />
+
+          <section className="rounded-[1.75rem] border border-slate-200 bg-white/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+            <button
+              type="button"
+              onClick={() => setIsCompletedExpanded((current) => !current)}
+              className="flex w-full items-center justify-between gap-4 rounded-[1.25rem] px-2 py-2 text-left transition hover:bg-slate-50"
+              aria-expanded={isCompletedExpanded}
+            >
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+                  完了済み
+                </p>
+                <p className="text-sm text-slate-600">
+                  {completedTodos.length === 0
+                    ? "完了したタスクはまだありません。"
+                    : `${completedTodos.length}件の完了タスク`}
+                </p>
+              </div>
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700">
+                {isCompletedExpanded ? "閉じる" : "展開"}
+              </span>
+            </button>
+
+            {isCompletedExpanded ? (
+              <div className="mt-3 border-t border-slate-200 pt-4">
+                <TodoColumn
+                  title="完了済み"
+                  count={completedTodos.length}
+                  emptyMessage="完了したタスクはまだありません。"
+                  todos={completedTodos}
+                  columnType="completed"
+                  editing={editing}
+                  tone="emerald"
+                  activeTaskId={activeTaskId}
+                  canSetActiveTask={canSetActiveTask}
+                  canClearActiveTask={canClearActiveTask}
+                  onSetActiveTask={onSetActiveTask}
+                  onClearActiveTask={onClearActiveTask}
+                  onToggleTodoCompletion={handleToggleTodoCompletion}
+                  onDeleteTodo={handleDeleteTodo}
+                  openMenuTodoId={openMenuTodoId}
+                  onToggleMenu={(todoId) =>
+                    setOpenMenuTodoId((currentId) =>
+                      currentId === todoId ? null : todoId,
+                    )
+                  }
+                  onCloseMenu={() => setOpenMenuTodoId(null)}
+                />
+              </div>
+            ) : null}
+          </section>
         </div>
       </div>
     </section>
