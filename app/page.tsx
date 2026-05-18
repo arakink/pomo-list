@@ -218,11 +218,10 @@ export default function Home() {
             Focus Fast, Track Clearly
           </p>
           <h1 className="text-4xl font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">
-            すぐに集中し、タスクの流れを見失わないための PomoList。
+            PomoList
           </h1>
           <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-            タイマーの核はそのままに、今回は ToDo 管理の土台を追加しました。タスクを登録し、
-            タグで見分けながら未完了と完了済みを切り替えられます。
+            ポモドーロタイマー × ToDoリストで、集中と進捗をつなぐ
           </p>
         </div>
 
