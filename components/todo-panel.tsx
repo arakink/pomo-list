@@ -2,7 +2,18 @@
 
 import { FormEvent, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Todo } from "@/lib/pomo-list";
+import { cn } from "@/lib/utils";
 
 type ColumnType = "incomplete" | "completed";
 type SelectionMode = "toggleStatus" | "delete" | null;
@@ -356,42 +367,22 @@ function TodoColumn({
 }: TodoColumnProps) {
   const panelClassName =
     tone === "emerald"
-      ? "bg-emerald-950 text-white"
+      ? "border border-emerald-200 bg-[linear-gradient(180deg,#f3fbf6_0%,#e8f7ee_100%)] text-slate-950"
       : "border border-slate-200 bg-slate-50 text-slate-950";
   const eyebrowClassName =
-    tone === "emerald" ? "text-emerald-200" : "text-slate-500";
+    tone === "emerald" ? "text-emerald-700" : "text-slate-500";
   const countClassName =
-    tone === "emerald" ? "text-white" : "text-slate-950";
-  const cardClassName =
-    tone === "emerald"
-      ? "bg-white/8 ring-1 ring-white/10"
-      : "bg-white ring-1 ring-slate-900/6";
-  const titleClassName = tone === "emerald" ? "text-white" : "text-slate-950";
-  const tagClassName =
-    tone === "emerald"
-      ? "bg-white/10 text-emerald-100"
-      : "bg-emerald-50 text-emerald-800";
+    tone === "emerald" ? "text-emerald-950" : "text-slate-950";
+  const titleClassName = "text-slate-950";
   const emptyClassName =
-    tone === "emerald" ? "text-slate-300" : "text-slate-500";
-  const buttonClassName =
-    tone === "emerald"
-      ? "border-white/20 bg-white/8 text-white hover:bg-white/14"
-      : "border-slate-300 bg-white text-slate-700 hover:border-slate-500";
-  const secondaryButtonClassName =
-    tone === "emerald"
-      ? "border-white/15 bg-transparent text-slate-200 hover:bg-white/10"
-      : "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200";
-  const dangerButtonClassName =
-    tone === "emerald"
-      ? "border-rose-300/30 bg-rose-400/10 text-rose-100 hover:bg-rose-400/20"
-      : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100";
+    tone === "emerald" ? "text-slate-500" : "text-slate-500";
   const inputClassName =
     tone === "emerald"
-      ? "border-white/15 bg-white/8 text-white placeholder:text-slate-300 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-200/10"
-      : "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10";
+      ? "border-emerald-200 bg-white text-slate-950 placeholder:text-slate-400 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/10"
+      : "";
   const checkboxClassName =
     tone === "emerald"
-      ? "border-white/20 bg-white/8 text-emerald-200 accent-emerald-300"
+      ? "border-emerald-300 bg-white text-emerald-700 accent-emerald-600"
       : "border-slate-300 bg-white text-emerald-700 accent-emerald-600";
   const hasSelection = todos.some((todo) =>
     selection.selectedTodoIds.includes(todo.id),
@@ -404,6 +395,31 @@ function TodoColumn({
     columnType,
   );
   const canSetTask = columnType === "incomplete" && !isSelectingInThisColumn;
+  const selectionCardClassName =
+    tone === "emerald"
+      ? "border-emerald-200 bg-white text-slate-700"
+      : "bg-white";
+  const todoCardClassName =
+    tone === "emerald"
+      ? "border-emerald-100 bg-white shadow-[0_10px_28px_rgba(16,185,129,0.08)]"
+      : "bg-white";
+  const actionAreaClassName =
+    tone === "emerald"
+      ? "border-emerald-100 bg-emerald-50/70"
+      : "border-slate-200 bg-slate-50";
+  const primaryButtonVariant = "default";
+  const secondaryButtonVariant = "secondary";
+  const destructiveButtonVariant = "destructive";
+  const actionButtonClassName =
+    "h-auto min-h-11 whitespace-normal px-4 py-3 text-center leading-[1.2] shadow-none";
+  const primaryButtonClassName =
+    tone === "emerald"
+      ? "border-emerald-600 bg-emerald-600 text-white hover:border-emerald-700 hover:bg-emerald-700"
+      : "";
+  const secondaryButtonClassName =
+    tone === "emerald"
+      ? "border-emerald-200 bg-white text-emerald-900 hover:border-emerald-300 hover:bg-emerald-50"
+      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50";
 
   return (
     <section className={`rounded-[1.75rem] p-5 ${panelClassName}`}>
@@ -421,43 +437,49 @@ function TodoColumn({
       <div className="mt-5 grid gap-2">
         {isSelectingInThisColumn ? (
           <>
-            <p className={`text-sm leading-6 ${eyebrowClassName}`}>
-              {selectionDescription}
-            </p>
-            <button
-              type="button"
+            <Card className={selectionCardClassName}>
+              <CardContent className="p-4">
+                <p className={cn("text-sm leading-6", eyebrowClassName)}>
+                  {selectionDescription}
+                </p>
+              </CardContent>
+            </Card>
+            <Button
               onClick={selection.onConfirm}
               disabled={!hasSelection}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                selection.mode === "delete" ? dangerButtonClassName : buttonClassName
-              }`}
+              variant={
+                selection.mode === "delete"
+                  ? destructiveButtonVariant
+                  : primaryButtonVariant
+              }
+              className={cn("w-full rounded-2xl", actionButtonClassName, selection.mode !== "delete" && primaryButtonClassName)}
             >
               {confirmActionLabel}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={selection.onCancel}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
+              variant={secondaryButtonVariant}
+              className={cn("w-full rounded-2xl", actionButtonClassName, secondaryButtonClassName)}
             >
               キャンセル
-            </button>
+            </Button>
           </>
         ) : (
           <>
-            <button
-              type="button"
+            <Button
               onClick={selection.onStartToggleStatus}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${buttonClassName}`}
+              variant={primaryButtonVariant}
+              className={cn("w-full rounded-2xl", actionButtonClassName, primaryButtonClassName)}
             >
               {primaryActionLabel}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={selection.onStartDelete}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${dangerButtonClassName}`}
+              variant={destructiveButtonVariant}
+              className={cn("w-full rounded-2xl", actionButtonClassName)}
             >
               削除
-            </button>
+            </Button>
           </>
         )}
       </div>
@@ -465,144 +487,177 @@ function TodoColumn({
       {todos.length > 0 ? (
         <ul className="mt-5 space-y-3">
           {todos.map((todo) => (
-            <li key={todo.id} className={`rounded-[1.4rem] p-4 ${cardClassName}`}>
-              <div className="flex flex-col gap-4">
+            <li key={todo.id}>
+              <Card className={cn("overflow-hidden rounded-2xl transition", todoCardClassName)}>
                 {isSelectingInThisColumn ? (
-                  <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={selection.selectedTodoIds.includes(todo.id)}
-                      onChange={() => selection.onSelect(todo.id)}
-                      aria-label={`「${todo.title}」を選択`}
-                      className={`h-4 w-4 rounded border ${checkboxClassName}`}
-                    />
-                    <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${eyebrowClassName}`}>
-                      選択
-                    </span>
-                  </label>
+                  <CardHeader className="pb-0">
+                    <label
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border px-3 py-2.5",
+                        tone === "emerald"
+                          ? "border-white/10 bg-white/6"
+                          : "border-slate-200 bg-slate-50",
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selection.selectedTodoIds.includes(todo.id)}
+                          onChange={() => selection.onSelect(todo.id)}
+                          aria-label={`「${todo.title}」を選択`}
+                          className={`h-4 w-4 rounded border ${checkboxClassName}`}
+                        />
+                        <span
+                          className={`text-xs font-semibold uppercase tracking-[0.18em] ${eyebrowClassName}`}
+                        >
+                          選択
+                        </span>
+                      </div>
+                    </label>
+                  </CardHeader>
                 ) : null}
 
                 {editing.todoId === todo.id ? (
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <label htmlFor={`edit-title-${todo.id}`} className="sr-only">
-                        タスク名
-                      </label>
-                      <input
-                        id={`edit-title-${todo.id}`}
-                        type="text"
-                        value={editing.title}
-                        onChange={(event) => editing.onTitleChange(event.target.value)}
-                        placeholder="タスク名"
-                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor={`edit-tag-${todo.id}`} className="sr-only">
-                        タグ
-                      </label>
-                      <input
-                        id={`edit-tag-${todo.id}`}
-                        type="text"
-                        value={editing.tag}
-                        onChange={(event) => editing.onTagChange(event.target.value)}
-                        placeholder="タグ"
-                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${inputClassName}`}
-                      />
-                    </div>
-                  </div>
+                  <>
+                    <CardHeader>
+                      <CardTitle className={titleClassName}>タスクを編集</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="space-y-2">
+                        <label htmlFor={`edit-title-${todo.id}`} className="sr-only">
+                          タスク名
+                        </label>
+                        <Input
+                          id={`edit-title-${todo.id}`}
+                          type="text"
+                          value={editing.title}
+                          onChange={(event) => editing.onTitleChange(event.target.value)}
+                          placeholder="タスク名"
+                          className={inputClassName}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor={`edit-tag-${todo.id}`} className="sr-only">
+                          タグ
+                        </label>
+                        <Input
+                          id={`edit-tag-${todo.id}`}
+                          type="text"
+                          value={editing.tag}
+                          onChange={(event) => editing.onTagChange(event.target.value)}
+                          placeholder="タグ"
+                          className={inputClassName}
+                        />
+                      </div>
+                    </CardContent>
+                  </>
                 ) : (
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <p className={`text-base font-semibold leading-6 ${titleClassName}`}>
-                        {todo.title}
-                      </p>
-                      {activeTaskId === todo.id ? (
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                            tone === "emerald"
-                              ? "bg-white/12 text-white"
-                              : "bg-orange-100 text-orange-800"
-                          }`}
-                        >
-                          Current
-                        </span>
-                      ) : null}
-                    </div>
-                    {todo.tag ? (
-                      <span
-                        className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${tagClassName}`}
-                      >
-                        {todo.tag}
-                      </span>
-                    ) : (
-                      <span className={`text-xs ${emptyClassName}`}>タグなし</span>
-                    )}
-                  </div>
+                  <>
+                    <CardHeader className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        {activeTaskId === todo.id ? (
+                          <Badge
+                            className={cn(
+                              "bg-orange-100 text-orange-800",
+                              tone === "emerald" && "bg-emerald-700 text-white",
+                            )}
+                          >
+                            Current Focus
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <div className="space-y-2">
+                        <CardTitle className={cn("leading-6", titleClassName)}>
+                          {todo.title}
+                        </CardTitle>
+                        {todo.tag ? (
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              "w-fit",
+                              tone === "emerald"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-emerald-50 text-emerald-800",
+                            )}
+                          >
+                            {todo.tag}
+                          </Badge>
+                        ) : (
+                          <p className={`text-xs font-medium ${emptyClassName}`}>タグなし</p>
+                        )}
+                      </div>
+                    </CardHeader>
+                  </>
                 )}
 
-                <div
-                  className={`grid gap-2 ${
-                    canSetTask ? "sm:grid-cols-3" : "sm:grid-cols-2"
-                  }`}
-                >
-                  {canSetTask ? (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        activeTaskId === todo.id && canClearActiveTask
-                          ? onClearActiveTask()
-                          : onSetActiveTask(todo.id)
-                      }
-                      disabled={
-                        activeTaskId === todo.id
-                          ? !canClearActiveTask
-                          : !canSetActiveTask
-                      }
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                        activeTaskId === todo.id
-                          ? buttonClassName
-                          : secondaryButtonClassName
-                      } disabled:cursor-not-allowed disabled:opacity-50`}
-                    >
-                      {activeTaskId === todo.id
-                        ? canClearActiveTask
-                          ? "解除"
-                          : "セット中"
-                        : canSetActiveTask
-                          ? "セット"
-                          : "Break後にセット"}
-                    </button>
-                  ) : null}
-                  {editing.todoId === todo.id ? (
-                    <button
-                      type="button"
-                      onClick={() => editing.onSave(todo.id)}
-                      disabled={!editing.title.trim()}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${buttonClassName}`}
-                    >
-                      保存
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => editing.onStart(todo)}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
-                    >
-                      編集
-                    </button>
-                  )}
-                  {editing.todoId === todo.id ? (
-                    <button
-                      type="button"
-                      onClick={editing.onCancel}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${secondaryButtonClassName}`}
-                    >
-                      キャンセル
-                    </button>
-                  ) : null}
-                </div>
-              </div>
+                <CardFooter className="pt-0">
+                  <div
+                    className={cn(
+                      "grid w-full gap-2 rounded-xl border p-2.5",
+                      actionAreaClassName,
+                      canSetTask ? "sm:grid-cols-3" : "sm:grid-cols-2",
+                    )}
+                  >
+                    {canSetTask ? (
+                      <Button
+                        onClick={() =>
+                          activeTaskId === todo.id && canClearActiveTask
+                            ? onClearActiveTask()
+                            : onSetActiveTask(todo.id)
+                        }
+                        disabled={
+                          activeTaskId === todo.id
+                            ? !canClearActiveTask
+                            : !canSetActiveTask
+                        }
+                        variant={activeTaskId === todo.id ? primaryButtonVariant : secondaryButtonVariant}
+                        className={cn(
+                          "w-full rounded-2xl",
+                          actionButtonClassName,
+                          activeTaskId === todo.id
+                            ? primaryButtonClassName
+                            : secondaryButtonClassName,
+                        )}
+                      >
+                        {activeTaskId === todo.id
+                          ? canClearActiveTask
+                            ? "解除"
+                            : "セット中"
+                          : canSetActiveTask
+                            ? "セット"
+                            : "Break後にセット"}
+                      </Button>
+                    ) : null}
+                    {editing.todoId === todo.id ? (
+                      <Button
+                        onClick={() => editing.onSave(todo.id)}
+                        disabled={!editing.title.trim()}
+                        variant={primaryButtonVariant}
+                        className={cn("w-full rounded-2xl", actionButtonClassName, primaryButtonClassName)}
+                      >
+                        保存
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => editing.onStart(todo)}
+                        variant={secondaryButtonVariant}
+                        className={cn("w-full rounded-2xl", actionButtonClassName, secondaryButtonClassName)}
+                      >
+                        編集
+                      </Button>
+                    )}
+                    {editing.todoId === todo.id ? (
+                      <Button
+                        onClick={editing.onCancel}
+                        variant={secondaryButtonVariant}
+                        className={cn("w-full rounded-2xl", actionButtonClassName, secondaryButtonClassName)}
+                      >
+                        キャンセル
+                      </Button>
+                    ) : null}
+                  </div>
+                </CardFooter>
+              </Card>
             </li>
           ))}
         </ul>
