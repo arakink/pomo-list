@@ -266,7 +266,7 @@ export function TodoPanel({
                 </p>
               </div>
               <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700">
-                {isCompletedExpanded ? "閉じる" : "展開"}
+                {isCompletedExpanded ? "閉じる" : "表示"}
               </span>
             </button>
 
