@@ -16,8 +16,8 @@ const modeLabels: Record<TimerMode, string> = {
 };
 
 const modeDescriptions: Record<TimerMode, string> = {
-  work: "ひと区切りの集中時間",
-  break: "短いリセット時間",
+  work: "Work 中はタスクを固定します。\n切り替えは Break で行えます。",
+  break: "Break ではタスクを切り替えできます。\n次の Work の準備をします。",
 };
 
 function getDurationByMode(mode: TimerMode) {
@@ -307,11 +307,8 @@ export function TimerPanel({
             <div className="mt-4 font-mono text-[4.5rem] font-semibold leading-none tracking-[-0.08em] sm:text-[6.5rem]">
               {formatTime(secondsLeft)}
             </div>
-            <p className="mt-4 max-w-sm text-sm leading-6 text-slate-300">
-              {modeDescriptions[mode]}。終了時に手動で次のモードへ切り替えます。
-            </p>
-            <p className="mt-3 max-w-sm text-xs leading-5 text-slate-400">
-              Work を始めるとタスクは固定されます。切り替えは Break に移ってから行います。
+            <p className="mt-4 max-w-sm whitespace-pre-line text-sm leading-6 text-slate-300">
+              {modeDescriptions[mode]}
             </p>
           </div>
 
