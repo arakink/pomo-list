@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { type FormEvent, type MutableRefObject, useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,7 @@ export function TodoPanel({
   const [editingTag, setEditingTag] = useState("");
   const [openMenuTodoId, setOpenMenuTodoId] = useState<string | null>(null);
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(false);
+  const menuButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const incompleteTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
@@ -183,6 +184,27 @@ export function TodoPanel({
     };
   }, [openMenuTodoId]);
 
+  useEffect(() => {
+    if (openMenuTodoId === null) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      menuButtonRefs.current[openMenuTodoId]?.focus();
+      setOpenMenuTodoId(null);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openMenuTodoId]);
+
   return (
     <section
       id="todo-panel"
@@ -270,6 +292,7 @@ export function TodoPanel({
             onToggleTodoCompletion={handleToggleTodoCompletion}
             onDeleteTodo={handleDeleteTodo}
             openMenuTodoId={openMenuTodoId}
+            menuButtonRefs={menuButtonRefs}
             onToggleMenu={(todoId) =>
               setOpenMenuTodoId((currentId) =>
                 currentId === todoId ? null : todoId,
@@ -318,6 +341,7 @@ export function TodoPanel({
                   onToggleTodoCompletion={handleToggleTodoCompletion}
                   onDeleteTodo={handleDeleteTodo}
                   openMenuTodoId={openMenuTodoId}
+                  menuButtonRefs={menuButtonRefs}
                   onToggleMenu={(todoId) =>
                     setOpenMenuTodoId((currentId) =>
                       currentId === todoId ? null : todoId,
@@ -350,6 +374,7 @@ type TodoColumnProps = {
   onToggleTodoCompletion: (todo: Todo) => void;
   onDeleteTodo: (todoId: string) => void;
   openMenuTodoId: string | null;
+  menuButtonRefs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
   onToggleMenu: (todoId: string) => void;
   onCloseMenu: () => void;
 };
@@ -370,6 +395,7 @@ function TodoColumn({
   onToggleTodoCompletion,
   onDeleteTodo,
   openMenuTodoId,
+  menuButtonRefs,
   onToggleMenu,
   onCloseMenu,
 }: TodoColumnProps) {
@@ -489,27 +515,39 @@ function TodoColumn({
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
-                        {activeTaskId === todo.id ? (
-                          <Badge
-                            className={cn(
-                              "bg-orange-100 text-orange-800",
-                              tone === "emerald" && "bg-emerald-700 text-white",
-                            )}
-                          >
-                            Current Focus
-                          </Badge>
-                        ) : null}
+                          {activeTaskId === todo.id ? (
+                            <Badge
+                              className={cn(
+                                "bg-orange-100 text-orange-800",
+                                tone === "emerald" && "bg-emerald-700 text-white",
+                              )}
+                            >
+                              Current Focus
+                            </Badge>
+                          ) : null}
                           <button
                             type="button"
                             onClick={() => onToggleMenu(todo.id)}
+                            ref={(node) => {
+                              menuButtonRefs.current[todo.id] = node;
+                            }}
+                            id={`todo-menu-button-${todo.id}`}
                             aria-label="タスクメニューを開く"
+                            aria-haspopup="menu"
+                            aria-expanded={openMenuTodoId === todo.id}
+                            aria-controls={`todo-menu-${todo.id}`}
                             className={menuButtonClassName}
                           >
                             ⋯
                           </button>
                         </div>
                         {openMenuTodoId === todo.id ? (
-                          <div className="absolute top-11 right-0 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_18px_32px_rgba(15,23,42,0.12)]">
+                          <div
+                            id={`todo-menu-${todo.id}`}
+                            role="menu"
+                            aria-labelledby={`todo-menu-button-${todo.id}`}
+                            className="absolute top-11 right-0 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_18px_32px_rgba(15,23,42,0.12)]"
+                          >
                             {canSetTask ? (
                               <button
                                 type="button"
@@ -526,6 +564,7 @@ function TodoColumn({
                                     ? !canClearActiveTask
                                     : !canSetActiveTask
                                 }
+                                role="menuitem"
                                 className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
                               >
                                 {activeTaskId === todo.id
@@ -541,6 +580,7 @@ function TodoColumn({
                                 editing.onStart(todo);
                                 onCloseMenu();
                               }}
+                              role="menuitem"
                               className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                             >
                               編集
@@ -548,6 +588,7 @@ function TodoColumn({
                             <button
                               type="button"
                               onClick={() => onDeleteTodo(todo.id)}
+                              role="menuitem"
                               className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-rose-700 transition hover:bg-rose-50"
                             >
                               削除
