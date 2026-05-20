@@ -108,6 +108,9 @@ export function TimerPanel({
   const modeRef = useRef<TimerMode>("work");
   const activeTaskAvailabilityRef = useRef<boolean | null>(null);
   const activeTaskClearAvailabilityRef = useRef<boolean | null>(null);
+  const resetStatsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const resetStatsDialogRef = useRef<HTMLDivElement | null>(null);
+  const resetStatsConfirmButtonRef = useRef<HTMLButtonElement | null>(null);
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
   const hasCurrentTask = currentTask !== null;
@@ -268,6 +271,61 @@ export function TimerPanel({
 
     setIsRunning(true);
   };
+
+  useEffect(() => {
+    if (!isConfirmingStatsReset) {
+      return;
+    }
+
+    const triggerButton = resetStatsTriggerRef.current;
+
+    resetStatsConfirmButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsConfirmingStatsReset(false);
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const dialog = resetStatsDialogRef.current;
+
+      if (!dialog) {
+        return;
+      }
+
+      const focusableElements = dialog.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) as NodeListOf<HTMLElement>;
+
+      if (focusableElements.length === 0) {
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      triggerButton?.focus();
+    };
+  }, [isConfirmingStatsReset]);
 
   return (
     <section className="mx-auto w-full max-w-4xl rounded-[2rem] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10">
@@ -469,6 +527,7 @@ export function TimerPanel({
 
           <div className="mt-6 flex justify-end border-t border-slate-200 pt-4">
             <Button
+              ref={resetStatsTriggerRef}
               onClick={() => setIsConfirmingStatsReset(true)}
               disabled={!hasTagStats}
               variant="ghost"
@@ -521,18 +580,32 @@ export function TimerPanel({
 
       {isConfirmingStatsReset ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-5">
-          <div className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
+          <div
+            ref={resetStatsDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-stats-dialog-title"
+            aria-describedby="reset-stats-dialog-description"
+            className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]"
+          >
             <p className="text-sm font-medium uppercase tracking-[0.28em] text-orange-700">
               Tag Stats
             </p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+            <h2
+              id="reset-stats-dialog-title"
+              className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950"
+            >
               集計をリセットしますか？
             </h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
+            <p
+              id="reset-stats-dialog-description"
+              className="mt-3 text-sm leading-6 text-slate-600"
+            >
               保存済みのタグ別完了回数をすべてクリアします。ToDo 自体は削除されません。
             </p>
             <div className="mt-6 grid gap-3">
               <button
+                ref={resetStatsConfirmButtonRef}
                 type="button"
                 onClick={handleConfirmStatsReset}
                 className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
