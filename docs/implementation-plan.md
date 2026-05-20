@@ -1,8 +1,8 @@
-# PomoList Implementation Plan
+# PomoFlowy Implementation Plan
 
 ## Overview
 
-PomoList is a web app built around the concept:
+PomoFlowy is a web app built around the concept:
 
 > "すぐに集中、しっかり記録"
 ユーザーは ToDo を管理しつつ、ポモドーロタイマーで集中時間を記録できます。タグ付けと統計機能もあり、どのタスクにどれだけ時間を使ったかが一目でわかります。

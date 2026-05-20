@@ -228,7 +228,7 @@ export default function Home() {
             Focus Fast, Track Clearly
           </p>
           <h1 className="text-4xl font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">
-            PomoList
+            PomoFlowy
           </h1>
           <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
             ポモドーロタイマー × ToDoリストで、集中と進捗をつなぐ

@@ -275,7 +275,7 @@ export function TimerPanel({
         <div className="space-y-8">
           <div className="space-y-4">
             <p className="text-sm font-medium uppercase tracking-[0.32em] text-orange-700">
-              PomoList Timer
+              PomoFlowy Timer
             </p>
             <div className="flex flex-wrap gap-3">
               {(["work", "break"] as TimerMode[]).map((item) => {
