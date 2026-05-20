@@ -21,7 +21,7 @@ export type PersistedAppState = {
   tagStats: TagStat[];
 };
 
-export const LOCAL_STORAGE_KEY = "pomo-list-app-state";
+export const LOCAL_STORAGE_KEY = "pomoflowy-app-state";
 
 export function getTagStatLabel(tag: string) {
   const normalizedTag = tag.trim();

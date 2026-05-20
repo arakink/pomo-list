@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { CurrentTask, TagStat, getTagStatLabel } from "@/lib/pomo-list";
+import { CurrentTask, TagStat, getTagStatLabel } from "@/lib/pomoflowy";
 
 const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;

@@ -14,7 +14,7 @@ import {
   getTagStatLabel,
   parsePersistedAppState,
   sanitizeActiveTaskId,
-} from "@/lib/pomo-list";
+} from "@/lib/pomoflowy";
 
 export default function Home() {
   const [persistedState, setPersistedState] = useState<PersistedAppState>(

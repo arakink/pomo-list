@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Todo } from "@/lib/pomo-list";
+import { Todo } from "@/lib/pomoflowy";
 import { cn } from "@/lib/utils";
 
 type ColumnType = "incomplete" | "completed";
