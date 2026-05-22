@@ -14,7 +14,7 @@ import {
   getTagStatLabel,
   parsePersistedAppState,
   sanitizeActiveTaskId,
-} from "@/lib/pomo-list";
+} from "@/lib/pomoflowy";
 
 export default function Home() {
   const [persistedState, setPersistedState] = useState<PersistedAppState>(
@@ -206,6 +206,20 @@ export default function Home() {
     });
   }, [activeTaskFromTodos, activeTaskId]);
 
+  const handleResetTagStats = useCallback(() => {
+    setTagStats([]);
+  }, []);
+
+  const handleBrowseIncompleteTodos = useCallback(() => {
+    const todoSection = document.getElementById("todo-panel");
+
+    if (!todoSection) {
+      return;
+    }
+
+    todoSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   return (
     <main className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#fff7ed_0%,#f8fafc_38%,#eef2ff_100%)] px-5 py-8 text-slate-950 sm:px-8 lg:px-12 lg:py-12">
       <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8">
@@ -214,21 +228,24 @@ export default function Home() {
             Focus Fast, Track Clearly
           </p>
           <h1 className="text-4xl font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">
-            すぐに集中し、タスクの流れを見失わないための PomoList。
+            PomoFlowy
           </h1>
           <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-            タイマーの核はそのままに、今回は ToDo 管理の土台を追加しました。タスクを登録し、
-            タグで見分けながら未完了と完了済みを切り替えられます。
+            ポモドーロタイマー × ToDoリストで、集中と進捗をつなぐ
           </p>
         </div>
 
         <TimerPanel
           currentTask={currentTask}
           tagStats={tagStats}
+          canClearActiveTask={canClearActiveTask}
+          onBrowseIncompleteTodos={handleBrowseIncompleteTodos}
           onWorkComplete={handleWorkComplete}
           onWorkSessionStart={handleWorkSessionStart}
+          onResetTagStats={handleResetTagStats}
           onActiveTaskAvailabilityChange={handleActiveTaskAvailabilityChange}
           onActiveTaskClearAvailabilityChange={setCanClearActiveTask}
+          onClearActiveTask={handleClearActiveTask}
         />
         <TodoPanel
           todos={todos}

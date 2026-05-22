@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PomoList",
+  title: "PomoFlowy",
   description: "すぐに集中、しっかり記録するためのポモドーロタイマー",
 };
 

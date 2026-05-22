@@ -2,7 +2,7 @@
 
 ## プロジェクト概要
 
-PomoList は ToDo 管理を備えたポモドーロタイマーアプリです。
+PomoFlowy は ToDo 管理を備えたポモドーロタイマーアプリです。
 プロダクトの方向性と実装順は `docs/implementation-plan.md` にまとめています。
 
 ## 重要なドキュメント

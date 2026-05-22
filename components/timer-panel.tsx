@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { CurrentTask, TagStat, getTagStatLabel } from "@/lib/pomo-list";
+import { Button } from "@/components/ui/button";
+import { CurrentTask, TagStat, getTagStatLabel } from "@/lib/pomoflowy";
 
 const WORK_DURATION_SECONDS = 25 * 60;
 const BREAK_DURATION_SECONDS = 5 * 60;
@@ -15,8 +16,8 @@ const modeLabels: Record<TimerMode, string> = {
 };
 
 const modeDescriptions: Record<TimerMode, string> = {
-  work: "ひと区切りの集中時間",
-  break: "短いリセット時間",
+  work: "Work 中はタスクを固定します。\n切り替えは Break で行えます。",
+  break: "Break ではタスクを切り替えできます。\n次の Work の準備をします。",
 };
 
 function getDurationByMode(mode: TimerMode) {
@@ -45,7 +46,15 @@ function getCurrentTaskDescription(currentTask: CurrentTask | null) {
     return "このタスクにはタグがありません。完了回数は「タグなし」として集計されます。";
   }
 
-  return "未完了タスクからセットした内容が表示されています。Work 完了時にこのタグへ回数が加算されます。";
+  return "現在取り組むタスクです。\nWork完了時に、タグ別の完了回数に反映されます。";
+}
+
+function getCurrentTaskActionDescription(canClearActiveTask: boolean) {
+  if (canClearActiveTask) {
+    return "必要に応じて、ここから現在のタスク設定を解除できます。";
+  }
+
+  return "Work の進行中はタスクを固定しています。解除は Break に移ってから行えます。";
 }
 
 function getTagStatKey(tag: string) {
@@ -54,34 +63,43 @@ function getTagStatKey(tag: string) {
 
 function getTagStatsDescription(tagStats: TagStat[]) {
   if (tagStats.length === 0) {
-    return "完了した作業はタグごとに集計され、傾向をここで確認できます。";
+    return "完了した作業はタグごとに集計されます。最初の1回が記録されると、ここから傾向を確認できます。";
   }
 
-  return "Work を完了すると、現在のタスクのタグごとに回数が反映されます。";
+  return "Work を完了すると、現在のタスクのタグごとに回数が反映されます。必要になったらこの場で集計をリセットできます。";
 }
 
 type TimerPanelProps = {
   currentTask: CurrentTask | null;
   tagStats: TagStat[];
+  canClearActiveTask: boolean;
+  onBrowseIncompleteTodos: () => void;
   onWorkComplete: () => void;
   onWorkSessionStart: () => void;
+  onResetTagStats: () => void;
   onActiveTaskAvailabilityChange: (canChange: boolean) => void;
   onActiveTaskClearAvailabilityChange: (canClear: boolean) => void;
+  onClearActiveTask: () => void;
 };
 
 export function TimerPanel({
   currentTask,
   tagStats,
+  canClearActiveTask,
+  onBrowseIncompleteTodos,
   onWorkComplete,
   onWorkSessionStart,
+  onResetTagStats,
   onActiveTaskAvailabilityChange,
   onActiveTaskClearAvailabilityChange,
+  onClearActiveTask,
 }: TimerPanelProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
+  const [isConfirmingStatsReset, setIsConfirmingStatsReset] = useState(false);
   const [hasStartedCurrentWorkSession, setHasStartedCurrentWorkSession] =
     useState(false);
   const intervalRef = useRef<number | null>(null);
@@ -90,10 +108,14 @@ export function TimerPanel({
   const modeRef = useRef<TimerMode>("work");
   const activeTaskAvailabilityRef = useRef<boolean | null>(null);
   const activeTaskClearAvailabilityRef = useRef<boolean | null>(null);
+  const resetStatsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const resetStatsDialogRef = useRef<HTMLDivElement | null>(null);
+  const resetStatsConfirmButtonRef = useRef<HTMLButtonElement | null>(null);
   const nextMode = getNextMode(mode);
   const canStart = secondsLeft > 0;
   const hasCurrentTask = currentTask !== null;
   const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
+  const hasTagStats = tagStats.length > 0;
 
   const clearRunningTimer = () => {
     if (intervalRef.current !== null) {
@@ -221,6 +243,11 @@ export function TimerPanel({
     setIsRunning(false);
   };
 
+  const handleConfirmStatsReset = () => {
+    onResetTagStats();
+    setIsConfirmingStatsReset(false);
+  };
+
   const handleStartPause = () => {
     if (isRunning) {
       clearRunningTimer();
@@ -245,13 +272,68 @@ export function TimerPanel({
     setIsRunning(true);
   };
 
+  useEffect(() => {
+    if (!isConfirmingStatsReset) {
+      return;
+    }
+
+    const triggerButton = resetStatsTriggerRef.current;
+
+    resetStatsConfirmButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsConfirmingStatsReset(false);
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const dialog = resetStatsDialogRef.current;
+
+      if (!dialog) {
+        return;
+      }
+
+      const focusableElements = dialog.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) as NodeListOf<HTMLElement>;
+
+      if (focusableElements.length === 0) {
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      triggerButton?.focus();
+    };
+  }, [isConfirmingStatsReset]);
+
   return (
-    <section className="w-full max-w-4xl rounded-[2rem] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10">
+    <section className="mx-auto w-full max-w-4xl rounded-[2rem] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur md:p-10">
       <div className="grid gap-8 lg:grid-cols-[1.45fr_0.85fr] lg:items-center">
         <div className="space-y-8">
           <div className="space-y-4">
             <p className="text-sm font-medium uppercase tracking-[0.32em] text-orange-700">
-              PomoList Timer
+              PomoFlowy Timer
             </p>
             <div className="flex flex-wrap gap-3">
               {(["work", "break"] as TimerMode[]).map((item) => {
@@ -283,15 +365,12 @@ export function TimerPanel({
             <div className="mt-4 font-mono text-[4.5rem] font-semibold leading-none tracking-[-0.08em] sm:text-[6.5rem]">
               {formatTime(secondsLeft)}
             </div>
-            <p className="mt-4 max-w-sm text-sm leading-6 text-slate-300">
-              {modeDescriptions[mode]}。終了時に手動で次のモードへ切り替えます。
-            </p>
-            <p className="mt-3 max-w-sm text-xs leading-5 text-slate-400">
-              Work を始めるとタスクは固定されます。切り替えは Break に移ってから行います。
+            <p className="mt-4 max-w-sm whitespace-pre-line text-sm leading-6 text-slate-300">
+              {modeDescriptions[mode]}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="grid gap-3 sm:flex sm:flex-wrap">
             <button
               type="button"
               onClick={handleStartPause}
@@ -317,7 +396,7 @@ export function TimerPanel({
           </div>
         </div>
 
-        <aside className="grid gap-4 rounded-[1.75rem] bg-slate-950 p-6 text-white md:grid-cols-2 lg:grid-cols-1">
+        <aside className="grid gap-4 rounded-[1.75rem] bg-slate-950 p-6 text-white sm:grid-cols-2 lg:grid-cols-1">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
               Current Mode
@@ -339,13 +418,13 @@ export function TimerPanel({
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+        <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 sm:p-6">
           <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             Current Task
           </h2>
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-5">
             <p
-              className={`text-2xl font-semibold tracking-[-0.04em] ${
+              className={`text-2xl font-semibold tracking-[-0.04em] sm:text-[2rem] ${
                 hasCurrentTask ? "text-slate-950" : "text-slate-400"
               }`}
             >
@@ -362,35 +441,55 @@ export function TimerPanel({
                 </span>
               )
             ) : (
-              <span className="inline-flex w-fit rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-                未設定
-              </span>
+              <div className="space-y-5">
+                <div>
+                  <Button
+                    onClick={onBrowseIncompleteTodos}
+                    variant="default"
+                    className="h-11 rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(16,185,129,0.18)] hover:bg-emerald-700"
+                  >
+                    タスクを選ぶ
+                  </Button>
+                </div>
+              </div>
             )}
-            <p className="text-sm leading-6 text-slate-600">
-              {getCurrentTaskDescription(currentTask)}
+            <p className="text-sm leading-6 whitespace-pre-line text-slate-600">
+              {hasCurrentTask
+                ? getCurrentTaskDescription(currentTask)
+                : "選択したタスクがここに表示されます。"}
             </p>
+            {hasCurrentTask ? (
+              <div className="space-y-3 pt-1">
+                <button
+                  type="button"
+                  onClick={onClearActiveTask}
+                  disabled={!canClearActiveTask}
+                  className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  セットを解除
+                </button>
+                <p className="text-xs leading-5 text-slate-500">
+                  {getCurrentTaskActionDescription(canClearActiveTask)}
+                </p>
+              </div>
+            ) : null}
           </div>
         </section>
 
-        <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
-                Tag Stats
-              </h2>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-                タグ別の完了回数
-              </p>
-            </div>
-            <p className="text-sm text-slate-500">
-              {tagStats.length > 0 ? "Live Data" : "Empty State"}
+        <section className="rounded-[1.5rem] bg-white p-5 ring-1 ring-slate-900/8 sm:p-6">
+          <div className="space-y-2">
+            <h2 className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+              Tag Stats
+            </h2>
+            <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-[2rem]">
+              タグ別の完了回数
             </p>
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             {getTagStatsDescription(tagStats)}
           </p>
 
-          {tagStats.length > 0 ? (
+          {hasTagStats ? (
             <ul className="mt-5 space-y-3">
               {tagStats.map((stat) => {
                 const normalizedTagLabel = getTagStatLabel(stat.tag);
@@ -398,7 +497,7 @@ export function TimerPanel({
                 return (
                   <li
                     key={getTagStatKey(stat.tag)}
-                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+                    className="flex items-center justify-between border-t border-slate-200 px-1 py-4 first:border-t-0 first:pt-0 last:pb-0"
                   >
                     <div className="flex items-center gap-3">
                       <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
@@ -420,8 +519,23 @@ export function TimerPanel({
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
               <p className="text-sm font-semibold text-slate-700">まだ集計はありません</p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                タスクをセットした状態で Work を完了すると、タグごとの回数がここに並びます。
+              </p>
             </div>
           )}
+
+          <div className="mt-6 flex justify-end border-t border-slate-200 pt-4">
+            <Button
+              ref={resetStatsTriggerRef}
+              onClick={() => setIsConfirmingStatsReset(true)}
+              disabled={!hasTagStats}
+              variant="ghost"
+              className="h-auto rounded-xl px-2 py-1.5 text-sm font-medium text-slate-500 shadow-none hover:bg-slate-100 hover:text-rose-600 disabled:bg-transparent disabled:text-slate-300"
+            >
+              完了回数をリセット
+            </Button>
+          </div>
         </section>
       </div>
 
@@ -456,6 +570,52 @@ export function TimerPanel({
                 type="button"
                 onClick={() => setIsConfirmingBreakMove(false)}
                 className="rounded-full px-5 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isConfirmingStatsReset ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-5">
+          <div
+            ref={resetStatsDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-stats-dialog-title"
+            aria-describedby="reset-stats-dialog-description"
+            className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]"
+          >
+            <p className="text-sm font-medium uppercase tracking-[0.28em] text-orange-700">
+              Tag Stats
+            </p>
+            <h2
+              id="reset-stats-dialog-title"
+              className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950"
+            >
+              集計をリセットしますか？
+            </h2>
+            <p
+              id="reset-stats-dialog-description"
+              className="mt-3 text-sm leading-6 text-slate-600"
+            >
+              保存済みのタグ別完了回数をすべてクリアします。ToDo 自体は削除されません。
+            </p>
+            <div className="mt-6 grid gap-3">
+              <button
+                ref={resetStatsConfirmButtonRef}
+                type="button"
+                onClick={handleConfirmStatsReset}
+                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                リセットする
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsConfirmingStatsReset(false)}
+                className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
               >
                 キャンセル
               </button>
