@@ -304,7 +304,17 @@ export function TodoPanel({
           <section className="rounded-[1.75rem] border border-slate-200 bg-white/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
             <button
               type="button"
-              onClick={() => setIsCompletedExpanded((current) => !current)}
+              onClick={() => {
+                if (isCompletedExpanded) {
+                  setOpenMenuTodoId(null);
+
+                  if (editingTodoId !== null && completedTodos.some((todo) => todo.id === editingTodoId)) {
+                    cancelEditingTodo();
+                  }
+                }
+
+                setIsCompletedExpanded((current) => !current);
+              }}
               className="flex w-full items-center justify-between gap-4 rounded-[1.25rem] px-2 py-2 text-left transition hover:bg-slate-50"
               aria-expanded={isCompletedExpanded}
             >

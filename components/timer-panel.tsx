@@ -309,6 +309,20 @@ export function TimerPanel({
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
       const activeElement = document.activeElement;
+      const isFocusInsideDialog =
+        activeElement instanceof HTMLElement && dialog.contains(activeElement);
+
+      if (!isFocusInsideDialog) {
+        event.preventDefault();
+
+        if (event.shiftKey) {
+          lastElement.focus();
+        } else {
+          firstElement.focus();
+        }
+
+        return;
+      }
 
       if (event.shiftKey && activeElement === firstElement) {
         event.preventDefault();
