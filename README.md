@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PomoFlowy
+
+PomoFlowy は、ポモドーロタイマーと ToDo 管理をひとつにまとめた集中支援アプリです。
+
+## Features
+
+- 25分 `Work` / 5分 `Break` のタイマー
+- ToDo の追加・編集・完了・削除
+- 未完了タスクを現在の作業タスクとしてセット
+- Work 完了時にタグ別の完了回数を集計
+- `localStorage` による状態保存
+
+## Main UI
+
+- Timer Panel
+- Current Task
+- Tag Stats
+- Todo Management
+
+## Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで `http://localhost:3000` を開くと確認できます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev`
+- `npm run lint`
+- `npm run build`
+- `npm run start`
 
-## Learn More
+## Project Docs
 
-To learn more about Next.js, take a look at the following resources:
+- `docs/implementation-plan.md`
+- `docs/branches/`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Current Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+このリポジトリは実装計画に基づいて段階的に開発しています。詳細は `docs/implementation-plan.md` を参照してください。
