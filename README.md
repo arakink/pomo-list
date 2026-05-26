@@ -1,50 +1,59 @@
 # PomoFlowy
 
-PomoFlowy は、ポモドーロタイマーと ToDo 管理をひとつにまとめた集中支援アプリです。
+PomoFlowy は、ポモドーロタイマーと ToDo 管理をひとつにまとめた集中支援アプリです。  
+「すぐに集中、しっかり記録」をテーマに、今やるタスクの明確化と作業回数の可視化を扱います。
 
-## Features
+## できること
 
-- 25分 `Work` / 5分 `Break` のタイマー
-- ToDo の追加・編集・完了・削除
-- 未完了タスクを現在の作業タスクとしてセット
-- Work 完了時にタグ別の完了回数を集計
-- `localStorage` による状態保存
+- 25 分 `Work` / 5 分 `Break` のタイマー切り替え
+- タスクの追加・編集・完了・削除
+- 未完了タスクから現在の作業タスクをセット
+- `Work` 完了時のタグ別完了回数の集計
+- `localStorage` を使ったタスク・現在のタスク・統計の保存
 
-## Main UI
+## 画面構成
 
-- Timer Panel
-- Current Task
-- Tag Stats
-- Todo Management
+- `Timer Panel`: タイマー操作、現在のタスク表示、タグ別統計
+- `Todo Management`: タスク追加、未完了 / 完了タスクの管理
 
-## Tech Stack
+## 技術スタック
 
 - Next.js 16
 - React 19
 - TypeScript
 - Tailwind CSS 4
 
-## Getting Started
+## セットアップ
 
 ```bash
 npm install
 npm run dev
 ```
 
-ブラウザで `http://localhost:3000` を開くと確認できます。
+`http://localhost:3000` を開くと確認できます。
 
-## Scripts
+## スクリプト
 
-- `npm run dev`
-- `npm run lint`
-- `npm run build`
-- `npm run start`
+- `npm run dev`: 開発サーバー起動
+- `npm run lint`: ESLint 実行
+- `npm run build`: 本番ビルド作成
+- `npm run start`: 本番ビルド起動
 
-## Project Docs
+## 開発の進め方
+
+このリポジトリは、機能を段階的に積み上げる前提で設計しています。  
+実装順と各フェーズの責務は、次のドキュメントを参照してください。
 
 - `docs/implementation-plan.md`
 - `docs/branches/`
 
-## Current Status
+ブランチ戦略:
 
-このリポジトリは実装計画に基づいて段階的に開発しています。詳細は `docs/implementation-plan.md` を参照してください。
+1. `feature/01-timer-core`
+2. `feature/02-todo-management`
+3. `feature/03-current-task-and-stats`
+4. `feature/04-timer-todo-integration`
+5. `feature/05-localstorage-persistence`
+6. `feature/06-polish-ui-feedback`
+
+README では全体像を案内し、ブランチごとの詳細仕様は `docs/` 配下に分離しています。
