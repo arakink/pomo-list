@@ -26,6 +26,9 @@ export default function Home() {
     persistedState.activeTaskId,
   );
   const [tagStats, setTagStats] = useState<TagStat[]>(persistedState.tagStats);
+  const [completedPomodoros, setCompletedPomodoros] = useState(
+    persistedState.completedPomodoros,
+  );
   const [canSetActiveTask, setCanSetActiveTask] = useState(true);
   const [canClearActiveTask, setCanClearActiveTask] = useState(true);
   const [workSessionTask, setWorkSessionTask] = useState<CurrentTask | null>(null);
@@ -68,6 +71,7 @@ export default function Home() {
         setTodos(nextPersistedState.todos);
         setActiveTaskId(nextPersistedState.activeTaskId);
         setTagStats(nextPersistedState.tagStats);
+        setCompletedPomodoros(nextPersistedState.completedPomodoros);
       } catch {
         const initialState = createInitialPersistedAppState();
 
@@ -75,6 +79,7 @@ export default function Home() {
         setTodos(initialState.todos);
         setActiveTaskId(initialState.activeTaskId);
         setTagStats(initialState.tagStats);
+        setCompletedPomodoros(initialState.completedPomodoros);
       } finally {
         setHasHydrated(true);
       }
@@ -93,12 +98,13 @@ export default function Home() {
           todos,
           activeTaskId: sanitizeActiveTaskId(todos, activeTaskId),
           tagStats,
+          completedPomodoros,
         }),
       );
     } catch {
       return;
     }
-  }, [activeTaskId, hasHydrated, tagStats, todos]);
+  }, [activeTaskId, completedPomodoros, hasHydrated, tagStats, todos]);
 
   const handleActiveTaskAvailabilityChange = (canChangeActiveTask: boolean) => {
     setCanSetActiveTask(canChangeActiveTask);
@@ -166,6 +172,8 @@ export default function Home() {
   };
 
   const handleWorkComplete = useCallback(() => {
+    setCompletedPomodoros((currentCount) => currentCount + 1);
+
     if (!workSessionTask) {
       return;
     }
@@ -206,8 +214,9 @@ export default function Home() {
     });
   }, [activeTaskFromTodos, activeTaskId]);
 
-  const handleResetTagStats = useCallback(() => {
+  const handleResetCompletedCounts = useCallback(() => {
     setTagStats([]);
+    setCompletedPomodoros(0);
   }, []);
 
   const handleBrowseIncompleteTodos = useCallback(() => {
@@ -238,11 +247,12 @@ export default function Home() {
         <TimerPanel
           currentTask={currentTask}
           tagStats={tagStats}
+          completedPomodoros={completedPomodoros}
           canClearActiveTask={canClearActiveTask}
           onBrowseIncompleteTodos={handleBrowseIncompleteTodos}
           onWorkComplete={handleWorkComplete}
           onWorkSessionStart={handleWorkSessionStart}
-          onResetTagStats={handleResetTagStats}
+          onResetCompletedCounts={handleResetCompletedCounts}
           onActiveTaskAvailabilityChange={handleActiveTaskAvailabilityChange}
           onActiveTaskClearAvailabilityChange={setCanClearActiveTask}
           onClearActiveTask={handleClearActiveTask}
