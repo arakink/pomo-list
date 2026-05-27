@@ -15,6 +15,7 @@ PomoFlowy is a web app built around the concept:
 4. `feature/04-timer-todo-integration`
 5. `feature/05-localstorage-persistence`
 6. `feature/06-polish-ui-feedback`
+7. `feature/07-completed-pomodoros-persistence`
 
 ## Implementation Steps
 
@@ -49,3 +50,9 @@ ToDo の「セット」ボタンで active task をタイマーへ連携し、�
 機能本体と永続化の挙動が固まったあとに、UI の polish をまとめて調整する。Tag Stats の集計リセット、文言整合、空状態やボタン状態の改善、モバイル時の見やすさ改善をこの段階で扱う。
 
 詳細: [feature-06-polish-ui-feedback.md](./branches/feature-06-polish-ui-feedback.md)
+
+### `feature/07-completed-pomodoros-persistence`
+
+全体の完了ポモドーロ回数を `localStorage` に保存し、タグ別完了回数と合わせてリセットできるようにする。既存の保存データは保持済みのタグ集計から全体回数を補完して移行する。
+
+詳細: [feature-07-completed-pomodoros-persistence.md](./branches/feature-07-completed-pomodoros-persistence.md)
