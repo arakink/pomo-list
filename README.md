@@ -9,7 +9,7 @@ PomoFlowy は、ポモドーロタイマーと ToDo 管理をひとつにまと�
 - タスクの追加・編集・完了・削除
 - 未完了タスクから現在の作業タスクをセット
 - `Work` 完了時のタグ別完了回数の集計
-- `localStorage` を使ったタスク・現在のタスク・統計の保存
+- `localStorage` を使ったタスク・現在のタスク・完了回数・統計の保存
 
 ## 画面構成
 
@@ -23,6 +23,7 @@ PomoFlowy は、ポモドーロタイマーと ToDo 管理をひとつにまと�
 - `Work` は 25 分、`Break` は 5 分で切り替わります
 - 開始、停止、リセットができます
 - `Work` を完了すると完了回数が加算されます
+- 完了回数はリロード後も保持され、タグ別完了回数とまとめてリセットできます
 - `Work` の途中で `Break` に移る場合は、そのセッションを完了として記録するか選べます
 
 ### Current Task
@@ -48,7 +49,7 @@ PomoFlowy は、ポモドーロタイマーと ToDo 管理をひとつにまと�
 
 ### 保存
 
-- ToDo、現在の作業タスク、タグ集計を `localStorage` に保存します
+- ToDo、現在の作業タスク、完了回数、タグ集計を `localStorage` に保存します
 - リロード後も前回の状態を復元します
 - 保存データが不正な場合は安全な初期状態に戻します
 
@@ -91,5 +92,6 @@ npm run dev
 4. `feature/04-timer-todo-integration`
 5. `feature/05-localstorage-persistence`
 6. `feature/06-polish-ui-feedback`
+7. `feature/07-completed-pomodoros-persistence`
 
 README では全体像を案内し、ブランチごとの詳細仕様は `docs/` 配下に分離しています。

@@ -72,11 +72,12 @@ function getTagStatsDescription(tagStats: TagStat[]) {
 type TimerPanelProps = {
   currentTask: CurrentTask | null;
   tagStats: TagStat[];
+  completedPomodoros: number;
   canClearActiveTask: boolean;
   onBrowseIncompleteTodos: () => void;
   onWorkComplete: () => void;
   onWorkSessionStart: () => void;
-  onResetTagStats: () => void;
+  onResetCompletedCounts: () => void;
   onActiveTaskAvailabilityChange: (canChange: boolean) => void;
   onActiveTaskClearAvailabilityChange: (canClear: boolean) => void;
   onClearActiveTask: () => void;
@@ -85,11 +86,12 @@ type TimerPanelProps = {
 export function TimerPanel({
   currentTask,
   tagStats,
+  completedPomodoros,
   canClearActiveTask,
   onBrowseIncompleteTodos,
   onWorkComplete,
   onWorkSessionStart,
-  onResetTagStats,
+  onResetCompletedCounts,
   onActiveTaskAvailabilityChange,
   onActiveTaskClearAvailabilityChange,
   onClearActiveTask,
@@ -97,7 +99,6 @@ export function TimerPanel({
   const [mode, setMode] = useState<TimerMode>("work");
   const [secondsLeft, setSecondsLeft] = useState(WORK_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
-  const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [isConfirmingBreakMove, setIsConfirmingBreakMove] = useState(false);
   const [isConfirmingStatsReset, setIsConfirmingStatsReset] = useState(false);
   const [hasStartedCurrentWorkSession, setHasStartedCurrentWorkSession] =
@@ -116,6 +117,7 @@ export function TimerPanel({
   const hasCurrentTask = currentTask !== null;
   const hasCurrentTaskTag = Boolean(currentTask?.tag.trim());
   const hasTagStats = tagStats.length > 0;
+  const hasCompletedCounts = completedPomodoros > 0 || hasTagStats;
 
   const clearRunningTimer = () => {
     if (intervalRef.current !== null) {
@@ -134,7 +136,6 @@ export function TimerPanel({
 
   const moveWorkToBreak = (shouldCountAsCompleted: boolean) => {
     if (shouldCountAsCompleted) {
-      setCompletedPomodoros((count) => count + 1);
       onWorkComplete();
     }
 
@@ -185,7 +186,6 @@ export function TimerPanel({
         setIsRunning(false);
 
         if (modeRef.current === "work") {
-          setCompletedPomodoros((count) => count + 1);
           onWorkComplete();
         }
       }
@@ -244,7 +244,7 @@ export function TimerPanel({
   };
 
   const handleConfirmStatsReset = () => {
-    onResetTagStats();
+    onResetCompletedCounts();
     setIsConfirmingStatsReset(false);
   };
 
@@ -543,11 +543,11 @@ export function TimerPanel({
             <Button
               ref={resetStatsTriggerRef}
               onClick={() => setIsConfirmingStatsReset(true)}
-              disabled={!hasTagStats}
+              disabled={!hasCompletedCounts}
               variant="ghost"
               className="h-auto rounded-xl px-2 py-1.5 text-sm font-medium text-slate-500 shadow-none hover:bg-slate-100 hover:text-rose-600 disabled:bg-transparent disabled:text-slate-300"
             >
-              完了回数をリセット
+              Completed と Tag Stats をリセット
             </Button>
           </div>
         </section>
@@ -609,13 +609,13 @@ export function TimerPanel({
               id="reset-stats-dialog-title"
               className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-950"
             >
-              集計をリセットしますか？
+              Completed と Tag Stats をリセットしますか？
             </h2>
             <p
               id="reset-stats-dialog-description"
               className="mt-3 text-sm leading-6 text-slate-600"
             >
-              保存済みのタグ別完了回数をすべてクリアします。ToDo 自体は削除されません。
+              保存済みの完了回数とタグ別完了回数をすべてクリアします。ToDo 自体は削除されません。
             </p>
             <div className="mt-6 grid gap-3">
               <button

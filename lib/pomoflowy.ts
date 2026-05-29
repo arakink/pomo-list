@@ -19,6 +19,7 @@ export type PersistedAppState = {
   todos: Todo[];
   activeTaskId: string | null;
   tagStats: TagStat[];
+  completedPomodoros: number;
 };
 
 export const LOCAL_STORAGE_KEY = "pomoflowy-app-state";
@@ -119,10 +120,22 @@ export function parsePersistedAppState(
     return null;
   }
 
+  if (
+    candidate.completedPomodoros !== undefined &&
+    (typeof candidate.completedPomodoros !== "number" ||
+      !Number.isSafeInteger(candidate.completedPomodoros) ||
+      candidate.completedPomodoros < 0)
+  ) {
+    return null;
+  }
+
   return {
     todos: candidate.todos,
     activeTaskId: sanitizeActiveTaskId(candidate.todos, candidate.activeTaskId),
     tagStats: candidate.tagStats,
+    completedPomodoros:
+      candidate.completedPomodoros ??
+      candidate.tagStats.reduce((sum, stat) => sum + stat.completedCount, 0),
   };
 }
 
@@ -131,6 +144,7 @@ export function createInitialPersistedAppState(): PersistedAppState {
     todos: initialTodos,
     activeTaskId: null,
     tagStats: [],
+    completedPomodoros: 0,
   };
 }
 
